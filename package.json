@@ -1,5 +1,5 @@
 {
-  "name": "Kanvasly",
+  "name": "kanvasly",
   "private": true,
   "scripts": {
     "build": "turbo run build",
