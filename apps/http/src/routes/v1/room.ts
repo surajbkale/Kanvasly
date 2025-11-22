@@ -1,9 +1,11 @@
 import { Router } from "express";
 import { CreateRoomSchema } from "@repo/common/types";
+import client from "@repo/db/client";
+import { userMiddleware } from "../../middlewares";
 
 export const roomRouter = Router();
 
-roomRouter.post("/create", async (req, res) => {
+roomRouter.post("/create", userMiddleware, async (req, res) => {
   try {
     const parsedData = CreateRoomSchema.safeParse(req.body);
     if (!parsedData.success) {
@@ -14,9 +16,14 @@ roomRouter.post("/create", async (req, res) => {
       return;
     }
 
-    res.json({
-      roomId: "room.id",
+    const room = await client.room.create({
+      data: {
+        slug: parsedData.data.name,
+        adminId: req.userId,
+      },
     });
+
+    res.json({ roomId: room.id });
   } catch (error: any) {
     console.error("Create room error: ", error);
     res.status(500).json({

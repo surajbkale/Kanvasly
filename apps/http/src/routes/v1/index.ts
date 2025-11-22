@@ -1,11 +1,12 @@
-import client from "@repo/db/client";
 import { Router } from "express";
+import client from "@repo/db/client";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
 import { compare, hash } from "../../utils/scrypt";
 import { SigninSchema, SignupSchema } from "@repo/common/types";
 import { roomRouter } from "./room";
-import { JWT_SECRET } from "@repo/backend-common/config";
+import { JWT_SECRET, saltRounds } from "@repo/backend-common/config";
+import bcrypt from "bcrypt";
 
 export const router = Router();
 
@@ -44,7 +45,10 @@ router.post("/signup", async (req, res) => {
       return;
     }
 
-    const hashedPassword = await hash(parsedData.data.password);
+    const hashedPassword = await bcrypt.hash(
+      parsedData.data.password,
+      saltRounds
+    );
 
     const user = await client.user.create({
       data: {
@@ -94,7 +98,10 @@ router.post("/signin", async (req, res) => {
       return;
     }
 
-    const isValid = await compare(parsedData.data.password, user.password!);
+    const isValid = await bcrypt.compare(
+      parsedData.data.password,
+      user.password!
+    );
 
     if (!isValid) {
       res.status(403).json({
@@ -113,7 +120,6 @@ router.post("/signin", async (req, res) => {
 
     res.json({
       token,
-      user: { username: user.username },
     });
   } catch (error: any) {
     console.error("Signin error: ", error);
