@@ -22,7 +22,7 @@ chatRouter.get("/:roomId", userMiddleware, async (req, res) => {
       orderBy: {
         id: "desc",
       },
-      take: 7,
+      take: 100,
     });
     res.json({ chats });
   } catch (error: any) {

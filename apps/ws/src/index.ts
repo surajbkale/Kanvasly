@@ -13,23 +13,7 @@ type User = {
 
 const users: User[] = [];
 
-// interface JOIN {
-//   type: WS_DATA_TYPE.JOIN;
-//   roomId: string;
-// }
-
-// interface LEAVE {
-//   type: WS_DATA_TYPE.LEAVE;
-//   roomId: string;
-// }
-
-// interface CHAT {
-//   type: WS_DATA_TYPE.CHAT;
-//   message: string;
-//   roomId: string;
-// }
-
-function validateUser(token: string): null {
+function validateUser(token: string): null | string {
   try {
     if (!token) {
       return null;
@@ -73,7 +57,6 @@ wss.on("connection", function connection(ws, req) {
   ws.on("error", console.error);
 
   ws.on("message", async function message(data) {
-    console.log("received: %s", data);
     const parsedData = JSON.parse(data as unknown as string);
 
     if (!parsedData || parsedData === null || parsedData === undefined) {
@@ -105,7 +88,7 @@ wss.on("connection", function connection(ws, req) {
         if (u.rooms.includes(parsedData.roomId) && u.ws !== ws) {
           u.ws.send(
             JSON.stringify({
-              type: "WS_DATA_TYPE.CHAT",
+              type: WS_DATA_TYPE.CHAT,
               message: parsedData.message,
               roomId: parsedData.roomId,
             })
@@ -114,7 +97,6 @@ wss.on("connection", function connection(ws, req) {
       });
     }
   });
-  ws.send("something");
 });
 
 wss.on("listening", () => {
