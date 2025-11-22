@@ -1,15 +1,15 @@
-import "dotenv/config";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
 import { compare, hash } from "../../utils/scrypt";
-import { SigninSchema, SignupSchema } from "../../utils/schema-types";
+import { SigninSchema, SignupSchema } from "@repo/common/types";
 import client from "@repo/db/client";
 import { roomRouter } from "./room";
+import { JWT_SECRET } from "@repo/backend-common/config";
 
 export const router = Router();
 
-if (!process.env.JWT_SECRET || !process.env.FRONTEND_URL) {
+if (!JWT_SECRET) {
   console.error("Missing required environment variable");
   process.exit(1);
 }
@@ -33,7 +33,7 @@ router.post("/signup", async (req, res) => {
 
     const existingUser = await client.user.findFirst({
       where: {
-        email: parsedData.data.email,
+        username: parsedData.data.username,
       },
     });
 
@@ -48,9 +48,9 @@ router.post("/signup", async (req, res) => {
 
     const user = await client.user.create({
       data: {
-        email: parsedData.data.email,
+        username: parsedData.data.username,
         password: hashedPassword,
-        role: parsedData.data.role,
+        name: parsedData.data.name,
       },
     });
 
@@ -83,9 +83,8 @@ router.post("/signin", async (req, res) => {
 
     const user = await client.user.findUnique({
       where: {
-        email: parsedData.data.email,
+        username: parsedData.data.username,
       },
-      include: { avatar: true },
     });
 
     if (!user) {
@@ -107,15 +106,14 @@ router.post("/signin", async (req, res) => {
     const token = jwt.sign(
       {
         userId: user.id,
-        role: user.role,
       },
-      process.env.JWT_SECRET!,
+      JWT_SECRET,
       { expiresIn: "72h" }
     );
 
     res.json({
       token,
-      user: { email: user.email, role: user.role },
+      user: { username: user.username },
     });
   } catch (error: any) {
     console.error("Signin error: ", error);

@@ -1,6 +1,6 @@
 import jwt, { decode } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
-import "dotenv/config";
+import { JWT_SECRET } from "@repo/backend-common/config";
 
 export const userMiddleware = (
   req: Request,
@@ -25,7 +25,7 @@ export const userMiddleware = (
     return;
   }
 
-  if (!process.env.JWT_SECRET) {
+  if (!JWT_SECRET) {
     console.error("Missing JWT_SECRET environment variable");
     res.status(500).json({
       message: "Internal server error: JWT_SECRET is not configured",
@@ -34,11 +34,12 @@ export const userMiddleware = (
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET) as {
+    const decoded = jwt.verify(token, JWT_SECRET) as {
       userId: string;
       role: string;
     };
 
+    // @ts-ignore
     req.userId = decoded.userId;
     next();
   } catch (error: any) {
