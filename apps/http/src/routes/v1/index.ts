@@ -2,11 +2,11 @@ import { Router } from "express";
 import client from "@repo/db/client";
 import jwt from "jsonwebtoken";
 import rateLimit from "express-rate-limit";
-import { compare, hash } from "../../utils/scrypt";
 import { SigninSchema, SignupSchema } from "@repo/common/types";
 import { roomRouter } from "./room";
 import { JWT_SECRET, saltRounds } from "@repo/backend-common/config";
 import bcrypt from "bcrypt";
+import { chatRouter } from "./chat";
 
 export const router = Router();
 
@@ -131,3 +131,4 @@ router.post("/signin", async (req, res) => {
 });
 
 router.use("/room", roomRouter);
+router.use("/chat", chatRouter);
