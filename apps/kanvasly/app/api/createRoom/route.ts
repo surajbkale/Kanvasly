@@ -1,42 +1,80 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest, NextResponse } from "next/server";
 import client from "@repo/db/client";
 import { CreateRoomSchema } from "@repo/common/types";
 import { getServerSession } from "next-auth";
+import { authOptions } from "@/utils/auth";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const session = await getServerSession();
+export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
   const user = session?.user;
   if (!user || !user.id) {
-    return res.status(400).json({
-      message: "Error Creating room user not found",
-    });
+    return NextResponse.json(
+      {
+        message: "Error Creating room user not found",
+      },
+      { status: 401 }
+    );
   }
 
-  if (req.method === "POST") {
-    console.log(`User: ${user}`);
+  try {
+    const body = await req.json();
     const parsedData = CreateRoomSchema.safeParse(req.body);
     if (!parsedData.success) {
-      return res.status(400).json({
-        message: "Create room schema failed",
+      console.error("Create room schema failed", {
         errors: parsedData.error.format(),
       });
+      return NextResponse.json(
+        {
+          message: "Invalid input data",
+          errors: parsedData.error.format(),
+        },
+        { status: 400 }
+      );
     }
 
     const room = await client.room.create({
       data: {
-        slug: parsedData.data.name,
+        slug: parsedData.data.roomName,
         adminId: user.id,
       },
     });
-    return res.status(200).json({
-      roomId: room.id,
-    });
-  }
 
-  return res.status(405).json({
-    error: "Method not allowed",
-  });
+    console.log(`Room Created successfully`, { roomId: room.id });
+    return NextResponse.json({ roomId: room.id }, { status: 201 });
+  } catch (error) {
+    console.error("Error creating room", { error });
+    return NextResponse.json(
+      {
+        message: "Internal Server Error",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET() {
+  return NextResponse.json(
+    {
+      error: "Method not allowed",
+    },
+    { status: 405 }
+  );
+}
+
+export async function PUT() {
+  return NextResponse.json(
+    {
+      error: "Method not allowed",
+    },
+    { status: 405 }
+  );
+}
+
+export async function DELETE() {
+  return NextResponse.json(
+    {
+      error: "Method not allowd",
+    },
+    { status: 405 }
+  );
 }
