@@ -34,7 +34,7 @@ router.post("/signup", async (req, res) => {
 
     const existingUser = await client.user.findFirst({
       where: {
-        username: parsedData.data.username,
+        email: parsedData.data.email,
       },
     });
 
@@ -52,7 +52,7 @@ router.post("/signup", async (req, res) => {
 
     const user = await client.user.create({
       data: {
-        username: parsedData.data.username,
+        email: parsedData.data.email,
         password: hashedPassword,
         name: parsedData.data.name,
       },
@@ -87,7 +87,7 @@ router.post("/signin", async (req, res) => {
 
     const user = await client.user.findUnique({
       where: {
-        username: parsedData.data.username,
+        email: parsedData.data.email,
       },
     });
 
