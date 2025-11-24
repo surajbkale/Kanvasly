@@ -1,6 +1,5 @@
 import { Button } from "@repo/ui/button";
 import { PenLine, Users, Share2 } from "lucide-react";
-import { motion } from "framer-motion";
 import Link from "next/link";
 
 export default function Home() {
@@ -8,28 +7,13 @@ export default function Home() {
     <main className="flex-1">
       <section className="space-y-6 pb-8 pt-6 md:pb-12 md:pt-10 lg:py-32">
         <div className="container flex max-w-[64rem] flex-col items-center gap-4 text-center">
-          <motion.h1
-            className="font-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            Draw Together in Real-time
-          </motion.h1>
-          <motion.p
-            className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            Create, collaborate, and share drawings in real-time.
-          </motion.p>
-          <motion.div
-            className="space-x-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
+          <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl">
+            Draw Together in Real-Time
+          </h1>
+          <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
+            Create, Collaborate and share drawings in real-time.
+          </p>
+          <div className="space-x-4">
             <Link href={"/draw"}>
               <Button
                 size="lg"
@@ -45,7 +29,7 @@ export default function Home() {
             >
               Learn More
             </Button>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -70,20 +54,17 @@ export default function Home() {
               description:
                 "Share your drawings with simple link or export them in various formats",
             },
-          ].map((feature, index) => (
-            <motion.div
+          ].map((feature) => (
+            <div
               key={feature.title}
               className="flex flex-col items-center space-y-2 text-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
             >
               <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center">
                 <feature.icon className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-bold">{feature.title}</h3>
               <p className="text-muted-foreground">{feature.description}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </section>
