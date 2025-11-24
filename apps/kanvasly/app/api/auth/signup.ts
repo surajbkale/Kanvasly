@@ -7,6 +7,8 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method === "POST") {
+    console.log(`Incomming request....`);
+    console.log(`Database url: ${process.env.DATABASE_URL}`);
     const { name, email, password } = req.body;
 
     const existingUser = await client.user.findUnique({
