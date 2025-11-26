@@ -8,13 +8,14 @@ export default function Home() {
       <section className="space-y-6 pb-8 pt-6 md:pb-12 md:pt-10 lg:py-32">
         <div className="container flex max-w-[64rem] flex-col items-center gap-4 text-center">
           <h1 className="font-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl">
-            Draw Together in Real-Time
+            Draw Together in Real-time
           </h1>
           <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
-            Create, Collaborate and share drawings in real-time.
+            Create, collaborate, and share drawings in real-time. No
+            installation required.
           </p>
-          <div className="flex items-center justify-center gap-3">
-            <Link href={"/draw"}>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-3">
+            <Link href="/draw">
               <Button
                 size="lg"
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
@@ -41,19 +42,19 @@ export default function Home() {
               icon: PenLine,
               title: "Easy Drawing Tools",
               description:
-                "Intuitive tools for sketching, diagramming, and illustrating your ideas",
+                "Intuitive tools for sketching, diagramming, and illustrating your ideas.",
             },
             {
               icon: Users,
               title: "Real-time Collaboration",
               description:
-                "Work together with your team in real-time, no matter where they are",
+                "Work together with your team in real-time, no matter where they are.",
             },
             {
               icon: Share2,
               title: "Easy Sharing",
               description:
-                "Share your drawings with simple link or export them in various formats",
+                "Share your drawings with a simple link or export them in various formats.",
             },
           ].map((feature) => (
             <div

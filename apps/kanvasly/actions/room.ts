@@ -1,14 +1,14 @@
-"user server";
+"use server";
 
-import { success, z } from "zod";
+import { z } from "zod";
 import client from "@repo/db/client";
 import { CreateRoomSchema, JoinRoomSchema } from "@repo/common/types";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/utils/auth";
 
-export async function joinRoom(roomName: string) {
+export async function joinRoom(data: { roomName: string }) {
   try {
-    const validatedRoomName = JoinRoomSchema.parse(roomName);
+    const validatedRoomName = JoinRoomSchema.parse(data);
 
     const room = await client.room.findUnique({
       where: { slug: validatedRoomName.roomName },
@@ -26,17 +26,21 @@ export async function joinRoom(roomName: string) {
     if (error instanceof z.ZodError) {
       return { success: false, error: "Invalid room code format" };
     }
-    console.error("Failed to join room: ", error);
+    console.error("Failed to join room:", error);
     return { success: false, error: "Failed to join room" };
   }
 }
 
-export async function createRoom(roomName: string) {
+export async function createRoom(data: { roomName: string }) {
   try {
     const session = await getServerSession(authOptions);
     const user = session?.user;
 
-    const validatedRoomName = CreateRoomSchema.parse(roomName);
+    const validatedRoomName = CreateRoomSchema.parse(data);
+
+    if (!user) {
+      return;
+    }
 
     const room = await client.room.create({
       data: {
@@ -54,13 +58,10 @@ export async function createRoom(roomName: string) {
       return {
         success: false,
         error: "Invalid room name format",
+        errorMessage: error.message,
       };
     }
-
-    console.error("Failed to create room: ", error);
-    return {
-      success: false,
-      error: "Failed to create room",
-    };
+    console.error("Failed to create room:", error);
+    return { success: false, error: "Failed to create room" };
   }
 }

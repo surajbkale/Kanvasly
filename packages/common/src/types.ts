@@ -33,6 +33,7 @@ export const SigninSchema = z.object({
 export const JoinRoomSchema = z.object({
   roomName: z
     .string()
+    .trim()
     .min(3, { message: "Room name must be at least 3 characters long." })
     .trim(),
 });
@@ -40,6 +41,7 @@ export const JoinRoomSchema = z.object({
 export const CreateRoomSchema = z.object({
   roomName: z
     .string()
+    .trim()
     .min(3, { message: "Room name must be at least 3 characters long." })
     .trim(),
 });
@@ -53,8 +55,29 @@ export const GetRoomBySlug = z.object({
 });
 
 export enum WS_DATA_TYPE {
-  JOIN = "join_room",
-  LEAVE = "leave_room",
-  CHAT = "chat",
-  DRAW = "draw",
+  JOIN = "JOIN_ROOM",
+  LEAVE = "LEAVE_ROOM",
+  CHAT = "MESSAGE",
+  USER_JOINED = "USER_JOINED",
+  USER_LEFT = "USER_LEFT",
 }
+
+export type WebSocketMessage = {
+  type: WS_DATA_TYPE;
+  roomId: string;
+  userId: string;
+  userName?: string;
+  message?: string;
+  timestamp?: string;
+};
+
+export type WebSocketChatMessage = {
+  userId: string;
+  userName: string;
+  content: string;
+  timestamp: string;
+};
+
+export type RoomParticipants = {
+  userId: string;
+};

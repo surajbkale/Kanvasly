@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import {
@@ -46,7 +48,7 @@ export function JoinRoom() {
   const handleJoinRoom = joinForm.handleSubmit((data) => {
     startTransition(async () => {
       try {
-        const result = await joinRoom(data.roomName);
+        const result = await joinRoom(data);
         if (result.success) {
           toast.success(`Joined room: ${result.roomName}`);
           router.push(`/room/${data.roomName}`);
@@ -57,7 +59,7 @@ export function JoinRoom() {
         const errorMessage =
           error instanceof Error
             ? error.message
-            : "Failed to join room. Please try again";
+            : "Failed to join room. Please try again.";
         toast.error(errorMessage);
       }
     });
@@ -66,10 +68,15 @@ export function JoinRoom() {
   const handleCreateRoom = createForm.handleSubmit((data) => {
     startTransition(async () => {
       try {
-        const result = await createRoom(data.roomName);
+        const result = await createRoom(data);
+
+        if (!result) {
+          return;
+        }
+
         if (result.success) {
           toast.success(
-            `Create room: ${data.roomName} with code: ${result.room?.slug}`
+            `Created room: ${data.roomName} with code: ${result.room?.slug}`
           );
           setIsCreateRoomOpen(false);
           router.push(`/room/${result.room?.slug}`);
@@ -80,7 +87,7 @@ export function JoinRoom() {
         const errorMessage =
           error instanceof Error
             ? error.message
-            : "Failed to create room. Please try again";
+            : "Failed to create room. Please try again.";
         toast.error(errorMessage);
       }
     });
@@ -89,13 +96,13 @@ export function JoinRoom() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant={"outline"} className="glow-effect">
+        <Button variant="outline" className="glow-effect">
           Join Room
         </Button>
       </DialogTrigger>
       <DialogContent className="glass-panel">
         <DialogHeader>
-          <DialogTitle>Join collaboration Room</DialogTitle>
+          <DialogTitle>Join Collaboration Room</DialogTitle>
         </DialogHeader>
         <Form {...joinForm}>
           <form onSubmit={handleJoinRoom} className="grid gap-4 py-4">
@@ -117,23 +124,29 @@ export function JoinRoom() {
                 </FormItem>
               )}
             />
-            <Button className="glow-effect" type="submit" disabled={isPending}>
-              {isPending ? "Joining..." : "Join Room"}
-            </Button>
-            <Button
-              variant={"outline"}
-              className="glow-effect"
-              onClick={() => setIsCreateRoomOpen(true)}
-              type="button"
-              disabled={isPending}
-            >
-              Create Room
-            </Button>
+            <DialogFooter className="flex-row">
+              <Button
+                className="glow-effect"
+                type="submit"
+                disabled={isPending}
+              >
+                {isPending ? "Joining..." : "Join Room"}
+              </Button>
+              <Button
+                variant="outline"
+                className="glow-effect"
+                onClick={() => setIsCreateRoomOpen(true)}
+                type="button"
+                disabled={isPending}
+              >
+                Create Room
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>
 
-      {/* Create Room dialog */}
+      {/* Create Room Dialog */}
       <Dialog open={isCreateRoomOpen} onOpenChange={setIsCreateRoomOpen}>
         <DialogContent className="glass-panel">
           <DialogHeader>
@@ -151,6 +164,7 @@ export function JoinRoom() {
                       <Input
                         placeholder="Enter room name"
                         className="glass-panel"
+                        {...field}
                         disabled={isPending}
                       />
                     </FormControl>
@@ -158,7 +172,6 @@ export function JoinRoom() {
                   </FormItem>
                 )}
               />
-
               <DialogFooter>
                 <Button
                   className="glow-effect"

@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "build": "npx tsc -b",
+    "build": "npx esbuild src/index.ts --bundle --outfile=dist/index.js --platform=node --tsconfig=tsconfig.json",
     "start": "node ./dist/index.js",
     "dev": "pnpm run build && pnpm run start"
   },
@@ -13,7 +13,8 @@
     "@repo/typescript-config": "workspace:*",
     "@types/ws": "^8.18.1",
     "@repo/backend-common": "workspace:*",
-    "@repo/db": "workspace:*"
+    "@repo/db": "workspace:*",
+    "@repo/common": "workspace:*"
   },
   "keywords": [],
   "author": "",

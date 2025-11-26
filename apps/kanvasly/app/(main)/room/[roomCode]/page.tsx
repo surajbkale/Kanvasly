@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
 import client from "@repo/db/client";
 import Link from "next/link";
 import RoomClientComponent from "@/components/RoomClientComponent";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/utils/auth";
 
 export async function generateMetadata({
   params,
@@ -11,16 +12,14 @@ export async function generateMetadata({
 }) {
   const { roomName } = params;
 
-  const room = await client.room.findUnique({
-    where: {
-      slug: roomName,
-    },
+  const room = await client.room.findFirst({
+    where: { slug: roomName },
   });
 
-  if (!room) return { title: "Room Not found" };
+  if (!room) return { title: "Room Not Found" };
 
   return {
-    title: `${room.slug} - Collboration Room`,
+    title: `${room.slug} - Collaboration Room`,
   };
 }
 
@@ -31,29 +30,28 @@ export default async function RoomPage({
 }) {
   const { roomName } = params;
 
-  const room = await client.room.findUnique({
+  const room = await client.room.findFirst({
     where: { slug: roomName },
-    include: {
-      participants: true,
-    },
   });
 
   if (!room) {
     notFound();
   }
 
-  // Get current user ID from cookies
-  const userId = (await cookies()).get("userId")?.value;
-
-  if (!userId) {
-    // Redirect to join room if no user ID
+  const session = await getServerSession(authOptions);
+  const user = session?.user;
+  if (!user) {
+    console.error("User from session not found.");
+    return;
+  }
+  console.log("session = ", session);
+  if (!user.id) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <h1 className="text-2xl mb-4">Session Expired</h1>
-        <p>Your session has expired. Please join the room again</p>
-
+        <p>Your session has expired. Please join the room again.</p>
         <Link
-          href={"/"}
+          href="/"
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           Back to Home
@@ -62,26 +60,13 @@ export default async function RoomPage({
     );
   }
 
-  // Check if user is a participant
-  const isParticipant = room.participants.some(
-    (participant) => participant.userId === userId
-  );
-
-  if (!isParticipant) {
-    // Add user to room participants
-    await db.roomParticipant.create({
-      data: {
-        userId,
-        roomId: room.id,
-      },
-    });
-  }
-
   return (
     <RoomClientComponent
+      roomId={room.id.toString()}
       roomName={roomName}
-      roomName={room.slug}
-      userId={userId}
+      userId={user.id}
+      userName={user.name || "User"}
+      token={session.accessToken}
     />
   );
 }
