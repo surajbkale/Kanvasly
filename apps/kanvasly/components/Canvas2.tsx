@@ -13,7 +13,7 @@ interface CanvasProps {
   onShapeDelete: (shapeId: string) => void;
 }
 
-export function Canvas({
+export function Canvas2({
   selectedTool,
   shapes,
   onShapeAdd,

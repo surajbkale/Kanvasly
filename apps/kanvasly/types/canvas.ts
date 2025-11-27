@@ -1,188 +1,92 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  RoomParticipants,
-  WS_DATA_TYPE,
-  WebSocketChatMessage,
-  WebSocketMessage,
-} from "@repo/common/types";
+import type React from "react";
+export type Point = {
+  x: number;
+  y: number;
+};
 
-export function useWebSocket(
-  roomId: string,
-  roomName: string,
-  userId: string,
-  userName: string
-) {
-  const [isConnected, setIsConnected] = useState(false);
-  const [messages, setMessages] = useState<WebSocketChatMessage[]>([]);
-  const [participants, setParticipants] = useState<RoomParticipants[]>([]);
-  const socketRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
-  const reconnectAttemptsRef = useRef(0);
-  const MAX_RECONNECT_ATTEMPTS = 5;
-  const paramsRef = useRef({ roomId, roomName, userId, userName });
+export type ShapeType =
+  | "selection"
+  | "grab"
+  | "rectangle"
+  | "diamond"
+  | "ellipse"
+  | "arrow"
+  | "line"
+  | "pen"
+  | "text"
+  | "eraser";
 
-  useEffect(() => {
-    paramsRef.current = { roomId, roomName, userId, userName };
-  }, [roomId, roomName, userId, userName]);
+export type StrokeStyle = "solid" | "dashed" | "dotted";
 
-  const connectWebSocket = useCallback(() => {
-    if (socketRef.current?.readyState === WebSocket.OPEN) {
-      return;
+// export type Shape = {
+//   id: string;
+//   type: ShapeType;
+//   points: Point[];
+//   strokeColor: string;
+//   fillColor: string;
+//   strokeWidth: number;
+//   strokeStyle: StrokeStyle;
+//   opacity: number;
+//   sloppiness: number;
+//   roughness: number;
+//   zIndex: number;
+// };
+
+export type Shape =
+  | {
+      type: "rect";
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      strokeWidth: number;
+      strokeFill: string;
+      bgFill: string;
     }
-    if (socketRef.current?.readyState === WebSocket.OPEN) {
-      socketRef.current.close();
+  | {
+      type: "ellipse";
+      centerX: number;
+      centerY: number;
+      radX: number;
+      radY: number;
+      strokeWidth: number;
+      strokeFill: string;
+      bgFill: string;
     }
-
-    try {
-      const ws = new WebSocket(`${process.env.WS_URL}`);
-
-      const handleOpen = () => {
-        setIsConnected(true);
-        reconnectAttemptsRef.current = 0;
-        const { roomId, roomName, userId, userName } = paramsRef.current;
-
-        ws.send(
-          JSON.stringify({
-            type: WS_DATA_TYPE.JOIN,
-            roomId,
-            roomName,
-            userId,
-            userName,
-          })
-        );
-      };
-
-      const handleMessage = (event: MessageEvent) => {
-        try {
-          const data: WebSocketMessage = JSON.parse(event.data);
-          switch (data.type) {
-            case WS_DATA_TYPE.CHAT:
-              if (data.message && data.timestamp) {
-                setMessages((prev) => [
-                  ...prev,
-                  {
-                    userId: data.userId!,
-                    userName: data.userName!,
-                    content: data.message!,
-                    timestamp: data.timestamp!,
-                  },
-                ]);
-              }
-              break;
-
-            case WS_DATA_TYPE.USER_JOINED:
-              setParticipants((prev) => {
-                const exists = prev.some((p) => p.userId === data.userId);
-                if (!exists && data.userId && data.userName) {
-                  return [
-                    ...prev,
-                    {
-                      userId: data.userId,
-                      userName: data.userName,
-                    },
-                  ];
-                }
-                return prev;
-              });
-              break;
-
-            case WS_DATA_TYPE.USER_LEFT:
-              setParticipants((prev) =>
-                prev.filter((user) => user.userId !== data.userId)
-              );
-              break;
-          }
-        } catch (err) {
-          console.error("Error processing message:", err);
-        }
-      };
-
-      const handleClose = (event: CloseEvent) => {
-        setIsConnected(false);
-        if (
-          event.code !== 1000 &&
-          reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS
-        ) {
-          const delay = Math.min(
-            1000 * 2 ** reconnectAttemptsRef.current,
-            30000
-          );
-          console.log(
-            `Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current + 1})`
-          );
-
-          reconnectTimeoutRef.current = setTimeout(() => {
-            reconnectAttemptsRef.current += 1;
-            connectWebSocket();
-          }, delay);
-        }
-      };
-
-      ws.addEventListener("open", handleOpen);
-      ws.addEventListener("message", handleMessage);
-      ws.addEventListener("close", handleClose);
-      ws.addEventListener("error", (error) => {
-        console.error("WebSocket error:", error);
-      });
-
-      socketRef.current = ws;
-
-      return () => {
-        ws.removeEventListener("open", handleOpen);
-        ws.removeEventListener("message", handleMessage);
-        ws.removeEventListener("close", handleClose);
-      };
-    } catch (error) {
-      console.error("Failed to create WebSocket connection:", error);
+  | {
+      type: "line";
+      fromX: number;
+      fromY: number;
+      toX: number;
+      toY: number;
+      strokeWidth: number;
+      strokeFill: string;
     }
-  }, []);
-
-  useEffect(() => {
-    connectWebSocket();
-
-    return () => {
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
-
-      if (socketRef.current?.readyState === WebSocket.OPEN) {
-        socketRef.current.send(
-          JSON.stringify({
-            type: WS_DATA_TYPE.LEAVE,
-            roomId: paramsRef.current.roomId,
-          })
-        );
-        socketRef.current.close(1000, "Component unmounted");
-      }
+  | {
+      type: "pencil";
+      points: { x: number; y: number }[];
+      strokeWidth: number;
+      strokeFill: string;
     };
-  }, [connectWebSocket]);
 
-  const sendMessage = useCallback((content: string) => {
-    if (!content?.trim()) {
-      console.warn("Cannot send empty message");
-      return;
-    }
-    if (socketRef.current?.readyState === WebSocket.OPEN) {
-      const { roomId, roomName, userId, userName } = paramsRef.current;
-      socketRef.current.send(
-        JSON.stringify({
-          type: WS_DATA_TYPE.CHAT,
-          message: content,
-          roomId,
-          roomName,
-          userId,
-          userName,
-        })
-      );
-    } else {
-      console.warn("Cannot send message: WebSocket not connected");
-    }
-  }, []);
+export type Tool = {
+  type: ShapeType;
+  icon: React.ReactNode;
+  label: string;
+};
 
-  return {
-    isConnected,
-    messages,
-    participants,
-    sendMessage,
-  };
-}
+export type strokeWidth = 1 | 2 | 4;
+
+export type strokeFill =
+  | "rgba(211, 211, 211)"
+  | "rgba(242, 154, 158)"
+  | "rgba(77, 161, 83)"
+  | "rgba(98, 177, 247)"
+  | "rgba(183, 98, 42)";
+
+export type bgFill =
+  | "rgba(0, 0, 0, 0)"
+  | "rgba(89, 49, 49)"
+  | "rgba(23, 61, 16)"
+  | "rgba(30, 70, 101)"
+  | "rgba(49, 37, 7)";
