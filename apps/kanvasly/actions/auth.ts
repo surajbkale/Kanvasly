@@ -6,6 +6,7 @@ import bcrypt from "bcrypt";
 import { success, z } from "zod";
 
 export async function signUp(values: z.infer<typeof SignupSchema>) {
+  console.log(`Database_url in signup action = ${process.env.DATABASE_URL}`);
   const validatedFields = SignupSchema.safeParse(values);
 
   if (!validatedFields.success) {

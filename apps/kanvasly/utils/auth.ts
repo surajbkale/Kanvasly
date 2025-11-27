@@ -4,7 +4,6 @@ import client from "@repo/db/client";
 import bcrypt from "bcrypt";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import jwt from "jsonwebtoken";
-import { email } from "zod";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(client),
@@ -22,6 +21,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        console.log("DATABASE_URL in authOptions = ", process.env.DATABASE_URL);
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Invalid credentials");
         }

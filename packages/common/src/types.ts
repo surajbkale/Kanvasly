@@ -1,4 +1,4 @@
-import z, { email } from "zod";
+import z from "zod";
 
 export const SignupSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email." }).trim(),
@@ -8,7 +8,7 @@ export const SignupSchema = z.object({
     .trim(),
   password: z
     .string()
-    .min(6, { message: "Password should be at least 6 characters long" })
+    .min(6, { message: "Be at least 6 characters long" })
     .regex(/[a-zA-Z]/, { message: "Contain at least one letter." })
     .regex(/[0-9]/, { message: "Contain at least one number." })
     .regex(/[^a-zA-Z0-9]/, {
@@ -31,19 +31,11 @@ export const SigninSchema = z.object({
 });
 
 export const JoinRoomSchema = z.object({
-  roomName: z
-    .string()
-    .trim()
-    .min(3, { message: "Room name must be at least 3 characters long." })
-    .trim(),
+  roomName: z.string().trim().min(3, "Room name must be at least 3 characters"),
 });
 
 export const CreateRoomSchema = z.object({
-  roomName: z
-    .string()
-    .trim()
-    .min(3, { message: "Room name must be at least 3 characters long." })
-    .trim(),
+  roomName: z.string().trim().min(3, "Room name must be at least 3 characters"),
 });
 
 export const GetChatSchema = z.object({
@@ -60,6 +52,7 @@ export enum WS_DATA_TYPE {
   CHAT = "MESSAGE",
   USER_JOINED = "USER_JOINED",
   USER_LEFT = "USER_LEFT",
+  DRAW = "DRAW",
 }
 
 export type WebSocketMessage = {
