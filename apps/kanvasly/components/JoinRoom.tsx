@@ -28,6 +28,7 @@ import { createRoom, joinRoom } from "@/actions/room";
 
 export function JoinRoom() {
   const [isCreateRoomOpen, setIsCreateRoomOpen] = useState(false);
+  const [isJoinRoomOpen, setIsJoinRoomOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -49,11 +50,12 @@ export function JoinRoom() {
     startTransition(async () => {
       try {
         const result = await joinRoom(data);
-        if (result.success) {
-          toast.success(`Joined room: ${result.roomName}`);
+        if (result!.success) {
+          setIsJoinRoomOpen(false);
+          toast.success(`Joined room: ${result!.roomName}`);
           router.push(`/room/${data.roomName}`);
         } else {
-          toast.error("Error: " + result.error);
+          toast.error("Error: " + result!.error);
         }
       } catch (error) {
         const errorMessage =
@@ -69,11 +71,6 @@ export function JoinRoom() {
     startTransition(async () => {
       try {
         const result = await createRoom(data);
-
-        if (!result) {
-          return;
-        }
-
         if (result.success) {
           toast.success(
             `Created room: ${data.roomName} with code: ${result.room?.slug}`
@@ -94,9 +91,13 @@ export function JoinRoom() {
   });
 
   return (
-    <Dialog>
+    <Dialog open={isJoinRoomOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="glow-effect">
+        <Button
+          variant="outline"
+          className="glow-effect"
+          onClick={() => setIsJoinRoomOpen(true)}
+        >
           Join Room
         </Button>
       </DialogTrigger>

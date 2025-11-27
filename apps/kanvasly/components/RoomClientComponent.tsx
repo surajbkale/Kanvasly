@@ -20,15 +20,18 @@ import { WebSocketChatMessage } from "@repo/common/types";
 
 export default function RoomClientComponent({
   roomName,
+  roomId,
   userId,
   token,
 }: {
   roomName: string;
+  roomId: string;
   userId: string;
   token: string;
 }) {
   const { isConnected, messages, participants, sendMessage } = useWebSocket(
     roomName,
+    roomId,
     userId,
     token
   );
@@ -39,7 +42,9 @@ export default function RoomClientComponent({
   const router = useRouter();
 
   useEffect(() => {
-    console.log(`roomName = ${roomName}, userId = ${userId}, token = ${token}`);
+    console.log(
+      "roomName = " + roomName + " userId = " + userId + " token = " + token
+    );
   }, [roomName, token, userId]);
 
   useEffect(() => {

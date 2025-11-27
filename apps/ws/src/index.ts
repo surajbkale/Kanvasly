@@ -80,7 +80,7 @@ wss.on("connection", function connection(ws, req) {
         console.error("Error in parsing ws data");
         return;
       }
-      console.log(`parsedData = ${parsedData}`);
+      console.log("parsedData = ", parsedData);
       switch (parsedData.type) {
         case WS_DATA_TYPE.JOIN:
           console.log(`User ${userId} joining room ${parsedData.roomId}`);
@@ -112,11 +112,10 @@ wss.on("connection", function connection(ws, req) {
 
         case WS_DATA_TYPE.CHAT:
           if (!parsedData.message || !parsedData.roomId) break;
-
           await client.chat.create({
             data: {
               message: parsedData.message,
-              roomId: parsedData.roomId,
+              roomId: Number(parsedData.roomId),
               userId: userId,
             },
           });
