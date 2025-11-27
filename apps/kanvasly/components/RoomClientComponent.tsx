@@ -22,30 +22,24 @@ export default function RoomClientComponent({
   roomName,
   roomId,
   userId,
-  token,
+  userName,
 }: {
   roomName: string;
   roomId: string;
   userId: string;
-  token: string;
+  userName: string;
 }) {
   const { isConnected, messages, participants, sendMessage } = useWebSocket(
-    roomName,
     roomId,
+    roomName,
     userId,
-    token
+    userName
   );
 
   const [input, setInput] = useState("");
   const [showDisconnectAlert, setShowDisconnectAlert] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  useEffect(() => {
-    console.log(
-      "roomName = " + roomName + " userId = " + userId + " token = " + token
-    );
-  }, [roomName, token, userId]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -65,9 +59,10 @@ export default function RoomClientComponent({
     }
   }, [isConnected]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (input.trim() && sendMessage(input)) {
+    if (input.trim()) {
+      await sendMessage(input);
       setInput("");
     }
   };
@@ -77,12 +72,8 @@ export default function RoomClientComponent({
   };
 
   const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase()
-      .substring(0, 2);
+    console.log("name = ", name);
+    return name.toUpperCase().substring(0, 2);
   };
 
   const formatTime = (timestamp: string) => {
@@ -122,23 +113,27 @@ export default function RoomClientComponent({
               ) : (
                 <ul className="space-y-2">
                   {participants.map((participant) => (
-                    <li
-                      key={participant.userId}
-                      className="flex items-center space-x-2"
-                    >
-                      <Avatar className="h-8 w-8 bg-primary/10">
-                        <AvatarFallback className="text-xs">
-                          {getInitials(participant.userId)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span
-                        className={
-                          participant.userId === userId ? "font-medium" : ""
-                        }
+                    <>
+                      <li
+                        key={participant.userName}
+                        className="flex items-center space-x-2"
                       >
-                        {participant.userId === userId && " (You)"}
-                      </span>
-                    </li>
+                        <Avatar className="h-8 w-8 bg-primary/10">
+                          <AvatarFallback className="text-xs">
+                            {getInitials(participant.userName)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span
+                          className={
+                            participant.userName === userName
+                              ? "font-medium"
+                              : ""
+                          }
+                        >
+                          {participant.userName === userName && " (You)"}
+                        </span>
+                      </li>
+                    </>
                   ))}
                 </ul>
               )}

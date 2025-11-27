@@ -64,10 +64,10 @@ export default async function RoomPage({
 
   return (
     <RoomClientComponent
-      roomName={room.slug}
       roomId={room.id.toString()}
+      roomName={room.slug}
       userId={user.id}
-      token={session.accessToken}
+      userName={user.name || "User-" + user.id}
     />
   );
 }
