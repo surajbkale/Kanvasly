@@ -1,11 +1,54 @@
-import { WebSocketServer, WebSocket } from "ws";
-import jwt from "jsonwebtoken";
 import client from "@repo/db/client";
-import { WebSocketMessage, WS_DATA_TYPE } from "@repo/common/types";
+import { JWT_SECRET, WebSocketMessage, WS_DATA_TYPE } from "@repo/common/types";
+import { WebSocketServer, WebSocket } from "ws";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import http from "http";
+// import cookie from 'cookie';
+const cookie = require("cookie");
 
-const JWT_SECRET = "your-secret-key";
+declare module "http" {
+  interface IncomingMessage {
+    user: {
+      id: string;
+      email: string;
+    };
+  }
+}
 
-const wss = new WebSocketServer({ port: 8080 });
+const server = http.createServer();
+const wss = new WebSocketServer({
+  server,
+  verifyClient: (info, callback) => {
+    console.log("info.req.headers = ", info.req.headers);
+    const cookies = cookie.parse(info.req.headers.cookie || "");
+    const sessionToken = cookies["accessToken"];
+    if (!sessionToken) {
+      console.error("No session token found");
+      callback(false, 401, "Unauthorized");
+      return;
+    }
+    console.log("sessionToken in ws = ", sessionToken);
+    console.log("JWT_SECRET in ws = ", JWT_SECRET);
+    try {
+      const decoded = jwt.verify(sessionToken, JWT_SECRET) as JwtPayload;
+      if (!decoded || !decoded.id) {
+        console.log("Invalid token payload:", decoded);
+        callback(false, 401, "Invalid token");
+        return;
+      }
+      info.req.user = {
+        id: decoded.id,
+        email: decoded.email,
+      };
+      callback(true);
+    } catch (err) {
+      console.log(
+        "Direct JWT verification failed, trying NextAuth token format..."
+      );
+      callback(false, 401, "Unauthorized");
+    }
+  },
+});
 
 type User = {
   userId: string;
@@ -15,45 +58,22 @@ type User = {
 
 const users: User[] = [];
 
-function validateUser(token: string): null | string {
-  try {
-    if (!token) {
-      return null;
-    }
-    console.log(`ws JWT_SECRET = ${JWT_SECRET}`);
-    const decoded = jwt.verify(token, JWT_SECRET);
-    if (typeof decoded === "string" || !decoded || !decoded.userId) {
-      return null;
-    }
-    return decoded.userId;
-  } catch (error) {
-    console.error("Error in jwt verification: ", error);
-    return null;
-  }
-}
-
 wss.on("connection", function connection(ws, req) {
-  const url = req.url;
-  if (!url) {
+  if (!req.user || !req.user.id) {
+    console.error("Connection without valid user");
+    ws.close(1008, "User not authenticated");
     return;
   }
 
-  const queryParams = new URLSearchParams(url.split("?")[1]);
-  const userId = validateUser(queryParams.get("token") || "");
-
-  if (userId === null) {
-    console.error("Invalid User");
-    ws.close();
-    return;
-  }
-
+  const userId = req.user.id;
   const user: User = {
     userId,
     ws,
     rooms: [],
   };
-
   users.push(user);
+
+  console.log(`User ${userId} connected`);
 
   ws.on("error", console.error);
 
@@ -66,6 +86,7 @@ wss.on("connection", function connection(ws, req) {
       }
       switch (parsedData.type) {
         case WS_DATA_TYPE.JOIN:
+          console.log(`User ${userId} joining room ${parsedData.roomId}`);
           user.rooms.push(parsedData.roomId);
           broadcastToRoom(
             parsedData.roomId,
@@ -79,6 +100,7 @@ wss.on("connection", function connection(ws, req) {
           break;
 
         case WS_DATA_TYPE.LEAVE:
+          console.log(`User ${userId} leaving room ${parsedData.roomId}`);
           user.rooms = user.rooms.filter((r) => r !== parsedData.roomId);
           broadcastToRoom(
             parsedData.roomId,
@@ -92,9 +114,8 @@ wss.on("connection", function connection(ws, req) {
           break;
 
         case WS_DATA_TYPE.CHAT:
-          if (!parsedData.message || !parsedData.roomId) {
-            break;
-          }
+          if (!parsedData.message || !parsedData.roomId) break;
+
           await client.chat.create({
             data: {
               message: parsedData.message,
@@ -102,7 +123,9 @@ wss.on("connection", function connection(ws, req) {
               userId: userId,
             },
           });
-
+          console.log(
+            `Chat from ${userId} in room ${parsedData.roomId}: ${parsedData.message.substring(0, 50)}${parsedData.message.length > 50 ? "..." : ""}`
+          );
           broadcastToRoom(
             parsedData.roomId,
             {
@@ -115,13 +138,17 @@ wss.on("connection", function connection(ws, req) {
             [userId]
           );
           break;
+
+        default:
+          console.warn(`Unknown message type: ${parsedData.type}`);
       }
     } catch (error) {
-      console.error("Error processing message: ", error);
+      console.error("Error processing message:", error);
     }
   });
 
   ws.on("close", () => {
+    console.log(`User ${userId} disconnected`);
     user.rooms.forEach((roomId) => {
       broadcastToRoom(
         roomId,
@@ -135,14 +162,8 @@ wss.on("connection", function connection(ws, req) {
     });
 
     const index = users.findIndex((u) => u.userId === userId);
-    if (index !== -1) {
-      users.splice(index, 1);
-    }
+    if (index !== -1) users.splice(index, 1);
   });
-});
-
-wss.on("listening", () => {
-  console.log(`Server is running on port 8080 and JWT_SECRET = ${JWT_SECRET}`);
 });
 
 function broadcastToRoom(
@@ -156,3 +177,7 @@ function broadcastToRoom(
     }
   });
 }
+
+server.listen(8080, () => {
+  console.log("HTTP/WebSocket server started on port 8080");
+});

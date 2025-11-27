@@ -5,6 +5,7 @@ import client from "@repo/db/client";
 import { CreateRoomSchema, JoinRoomSchema } from "@repo/common/types";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/utils/auth";
+import { cookies } from "next/headers";
 
 export async function joinRoom(data: { roomName: string }) {
   try {
@@ -17,6 +18,22 @@ export async function joinRoom(data: { roomName: string }) {
     if (!room) {
       return { success: false, error: "Room not found" };
     }
+
+    const session = await getServerSession(authOptions);
+    const cookieToken = session?.accessToken;
+
+    if (!cookieToken) {
+      console.error("session.accessToken not found in join room server action");
+      return;
+    }
+
+    (await cookies()).set("accessToken", cookieToken, {
+      maxAge: 60 * 60 * 24 * 7,
+      httpOnly: true,
+      path: "/",
+      sameSite: "lax",
+      secure: false,
+    });
 
     return {
       success: true,
@@ -36,11 +53,11 @@ export async function createRoom(data: { roomName: string }) {
     const session = await getServerSession(authOptions);
     const user = session?.user;
 
-    const validatedRoomName = CreateRoomSchema.parse(data);
-
-    if (!user) {
-      return;
+    if (!user || !user.id) {
+      return { success: false, error: "User not found" };
     }
+
+    const validatedRoomName = CreateRoomSchema.parse(data);
 
     const room = await client.room.create({
       data: {

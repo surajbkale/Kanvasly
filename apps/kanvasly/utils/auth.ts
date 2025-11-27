@@ -60,6 +60,10 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email;
       }
 
+      console.log(
+        `>>> proces.env.NEXTAUTH_SECRET = ${process.env.NEXTAUTH_SECRET}`
+      );
+
       token.accessToken = jwt.sign(
         { id: token.id, email: token.email },
         process.env.NEXTAUTH_SECRET || "",
@@ -76,16 +80,16 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  cookies: {
-    sessionToken: {
-      name: `__Secure-next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-  },
+  // cookies: {
+  //   sessionToken: {
+  //     name: `__Secure-next-auth.session-token`,
+  //     options: {
+  //       httpOnly: true,
+  //       sameSite: "lax",
+  //       path: "/",
+  //       secure: process.env.NODE_ENV === "production",
+  //     },
+  //   },
+  // },
   secret: process.env.NEXTAUTH_SECRET,
 };
