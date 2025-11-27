@@ -6,7 +6,7 @@ import * as z from "zod";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -15,7 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "../ui/input";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { SigninSchema } from "@repo/common/types";
 
@@ -48,14 +48,15 @@ export function SignInForm() {
         }
 
         toast.success("Signed in successfully");
-        router.push("/dashboard");
+
+        router.push("/draw");
         router.refresh();
       } catch (error) {
-        toast.error("Something went wrong. Please try again");
+        toast.error("Something went wrong. Please try again.");
         const errorMessage =
           error instanceof Error
             ? error.message
-            : "Something went wrong. Please try again";
+            : "Something went wrong. Please try again.";
         console.error(errorMessage);
       }
     });
@@ -91,6 +92,7 @@ export function SignInForm() {
               <FormControl>
                 <Input
                   {...field}
+                  type="password"
                   disabled={isPending}
                   placeholder="Enter your password"
                 />
