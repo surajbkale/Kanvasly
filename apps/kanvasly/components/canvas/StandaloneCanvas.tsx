@@ -19,6 +19,11 @@ import { MainMenuStack } from "../MainMenuStack";
 import { ToolMenuStack } from "../ToolMenuStack";
 import SidebarTriggerButton from "../SidebarTriggerButton";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import {
+  HomeWelcome,
+  MainMenuWelcome,
+  ToolMenuWelcome,
+} from "../welcome-screen";
 
 export function StandaloneCanvas() {
   const { theme } = useTheme();
@@ -241,6 +246,7 @@ export function StandaloneCanvas() {
           {isMediumScreen && (
             <>
               <SidebarTriggerButton onClick={toggleSidebar} />
+              <MainMenuWelcome />
               {sidebarOpen && (
                 <MainMenuStack
                   isOpen={sidebarOpen}
@@ -268,14 +274,19 @@ export function StandaloneCanvas() {
         </div>
       </div>
 
-      <Toolbar2
-        selectedTool={activeTool}
-        onToolSelect={setActiveTool}
-        canRedo={false}
-        canUndo={false}
-        onRedo={() => {}}
-        onUndo={() => {}}
-      />
+      <div>
+        <Toolbar2
+          selectedTool={activeTool}
+          onToolSelect={setActiveTool}
+          canRedo={false}
+          canUndo={false}
+          onRedo={() => {}}
+          onUndo={() => {}}
+        />
+        <div className="relative">
+          <ToolMenuWelcome />
+        </div>
+      </div>
 
       <Scale scale={scale} setScale={setScale} />
       <MobileNavbar
@@ -297,6 +308,7 @@ export function StandaloneCanvas() {
         onExportCanvas={exportCanvas}
         onImportCanvas={importCanvas}
       />
+      <HomeWelcome />
       <canvas ref={canvasRef} />
     </div>
   );
