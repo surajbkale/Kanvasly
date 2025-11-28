@@ -67,6 +67,11 @@ export function Canvas({
   const [bgFill, setBgFill] = useState<bgFill>("rgba(0, 0, 0, 0)");
   const [grabbing, setGrabbing] = useState(false);
   const [existingShapes, setExistingShapes] = useState<Shape[]>([]);
+  const paramsRef = useRef({ roomId, roomName, userId, userName });
+  const activeToolRef = useRef(activeTool);
+  const strokeFillRef = useRef(strokeFill);
+  const strokeWidthRef = useRef(strokeWidth);
+  const bgFillRef = useRef(bgFill);
 
   const { isConnected, messages, sendMessage } = useWebSocket(
     roomId,
@@ -76,10 +81,15 @@ export function Canvas({
   );
 
   useEffect(() => {
+    paramsRef.current = { roomId, roomName, userId, userName };
+  }, [roomId, roomName, userId, userName]);
+
+  useEffect(() => {
     if (messages.length > 0) {
       try {
         // Process all messages that contain drawing data
         messages.forEach((message) => {
+          // console.log('message = ', message);
           try {
             const data = JSON.parse(message.content);
             if (data.type === "draw") {
@@ -111,6 +121,26 @@ export function Canvas({
   });
 
   useEffect(() => {
+    activeToolRef.current = activeTool;
+    game?.setTool(activeTool);
+  }, [activeTool, game]);
+
+  useEffect(() => {
+    strokeWidthRef.current = strokeWidth;
+    game?.setStrokeWidth(strokeWidth);
+  }, [strokeWidth, game]);
+
+  useEffect(() => {
+    strokeFillRef.current = strokeFill;
+    game?.setStrokeFill(strokeFill);
+  }, [strokeFill, game]);
+
+  useEffect(() => {
+    bgFillRef.current = bgFill;
+    game?.setBgFill(bgFill);
+  }, [bgFill, game]);
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       switch (e.key) {
         case "1":
@@ -135,15 +165,12 @@ export function Canvas({
           break;
       }
     };
-
     document.addEventListener("keydown", handleKeyDown);
-
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [setActiveTool]);
 
-  // Handle WebSocket messages for the Game class
   const handleSendDrawing = useCallback(
     (msgData: string) => {
       if (isConnected) {
@@ -155,41 +182,42 @@ export function Canvas({
 
   useEffect(() => {
     if (canvasRef.current) {
-      const g = new Game(
+      const game = new Game(
         canvasRef.current,
-        roomId,
+        paramsRef.current.roomId,
         handleSendDrawing,
-        roomName,
+        paramsRef.current.roomName,
         (newScale) => setScale(newScale),
         existingShapes
       );
-      setGame(g);
+      setGame(game);
 
-      if (activeTool === "grab") {
-        const handleGrab = () => {
-          setGrabbing((prev) => !prev);
-        };
+      game.setTool(activeToolRef.current);
+      game.setStrokeWidth(strokeWidthRef.current);
+      game.setStrokeFill(strokeFillRef.current);
+      game.setBgFill(bgFillRef.current);
 
-        document.addEventListener("mousedown", handleGrab);
-        document.addEventListener("mouseup", handleGrab);
-
-        return () => {
-          document.removeEventListener("mousedown", handleGrab);
-          document.removeEventListener("mouseup", handleGrab);
-        };
-      }
       return () => {
-        g.destroy();
+        game.destroy();
       };
     }
-  }, [
-    activeTool,
-    canvasRef,
-    existingShapes,
-    handleSendDrawing,
-    roomId,
-    roomName,
-  ]);
+  }, [canvasRef, existingShapes, handleSendDrawing]);
+
+  useEffect(() => {
+    if (activeTool === "grab") {
+      const handleGrab = () => {
+        setGrabbing((prev) => !prev);
+      };
+
+      document.addEventListener("mousedown", handleGrab);
+      document.addEventListener("mouseup", handleGrab);
+
+      return () => {
+        document.removeEventListener("mousedown", handleGrab);
+        document.removeEventListener("mouseup", handleGrab);
+      };
+    }
+  }, [activeTool]);
 
   useEffect(() => {
     if (game?.outputScale) {

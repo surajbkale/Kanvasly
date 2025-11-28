@@ -55,7 +55,7 @@ export const Toolbar = ({ activeTool, setActiveTool }: ToolbarProps) => {
       <div className="flex bg-[#232329] px-4 py-1 rounded-md gap-3 h-full">
         {Tool.map((tool) => {
           return (
-            <>
+            <div key={tool.tool} className="flex items-center">
               <ToolButton
                 active={activeTool === tool.tool}
                 onClick={() => setActiveTool(tool.tool)}
@@ -69,7 +69,7 @@ export const Toolbar = ({ activeTool, setActiveTool }: ToolbarProps) => {
                   className="bg-white/20 mx-1"
                 />
               ) : null}
-            </>
+            </div>
           );
         })}
       </div>

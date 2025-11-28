@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   RoomParticipants,
@@ -34,7 +36,7 @@ export function useWebSocket(
     }
 
     try {
-      const ws = new WebSocket(`${process.env.WS_URL}`);
+      const ws = new WebSocket(`ws://localhost:8080`);
 
       const handleOpen = () => {
         setIsConnected(true);
