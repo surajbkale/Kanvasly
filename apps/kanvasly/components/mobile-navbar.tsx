@@ -11,7 +11,7 @@ import {
   Layers,
   FileText,
   Users,
-  Home,
+  Menu,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,9 +42,9 @@ export function MobileNavbar({
   return (
     <>
       {/* Modern Mobile Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+      <footer className="fixed bottom-0 left-0 right-0 z-50 md:hidden w-full max-w-full min-w-full ">
         <div className="mx-auto max-w-md px-4 pb-4">
-          <div className="flex items-center justify-between rounded-lg border bg-white p-2 backdrop-blur-md shadow-lg">
+          <div className="flex items-center justify-between rounded-[8px] border p-2 backdrop-blur-md Island">
             {/* <Button
                             variant="ghost"
                             size="icon"
@@ -56,8 +56,8 @@ export function MobileNavbar({
                             <span className="sr-only">Toggle sidebar</span>
                         </Button> */}
             <NavbarButton
-              icon={Home}
-              label="Home"
+              icon={Menu}
+              label="Menu"
               onClick={() => setSidebarOpen(!sidebarOpen)}
               active={sidebarOpen}
             />
@@ -81,7 +81,7 @@ export function MobileNavbar({
             />
           </div>
         </div>
-      </div>
+      </footer>
 
       {/* Color Picker Sheet */}
       <Sheet open={colorPickerOpen} onOpenChange={setColorPickerOpen}>
@@ -181,10 +181,9 @@ function NavbarButton({
   return (
     <button
       className={cn(
-        "flex flex-col items-center justify-center w-8 h-8 rounded-lg transition-all hover:bg-[#ececf4] hover:text-black hover:shadow-sm hover:shadow-white",
-        active
-          ? "bg-[#ececf4] text-black shadow-sm shadow-white"
-          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+        "flex flex-col items-center justify-center w-8 h-8 rounded-lg transition-all hover:bg-light-btn-hover-bg text-icon-fill-color-d dark:bg-transparent dark:hover:bg-d-btn-hover-bg dark:text-white",
+        label === "Menu" ? "menu-btn-box-shadow bg-light-btn-bg" : "",
+        active ? "bg-light-btn-hover-bg dark:bg-d-btn-hover-bg" : ""
       )}
       onClick={onClick}
     >

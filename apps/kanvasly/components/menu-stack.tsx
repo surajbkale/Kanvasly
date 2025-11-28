@@ -32,7 +32,7 @@ interface SidebarProps {
   setCanvasColor: (color: string) => void;
 }
 
-export function Sidebar({
+export function MenuStack({
   isOpen,
   onClose,
   canvasColor,
@@ -74,15 +74,6 @@ export function Sidebar({
 
   return (
     <>
-      {/* Backdrop for mobile */}
-      <div
-        className={cn(
-          "fixed inset-0 z-40 bg-background/80 backdrop-blur-sm transition-opacity md:hidden",
-          isOpen ? "opacity-100" : "pointer-events-none opacity-0"
-        )}
-        aria-hidden="true"
-      />
-
       {/* Clear Canvas Confirmation Dialog */}
       <ConfirmDialog
         open={clearDialogOpen}

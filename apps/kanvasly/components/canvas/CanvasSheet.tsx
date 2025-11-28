@@ -4,6 +4,8 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { Game } from "@/draw/Game";
 import {
   bgFill,
+  canvasBgDark,
+  canvasBgLight,
   Shape,
   strokeFill,
   strokeWidth,
@@ -17,6 +19,7 @@ import { Sidebar as MobSidebar } from "../sidebar";
 import { MobileNavbar } from "../mobile-navbar";
 import { Button } from "../ui/button";
 import { Menu } from "lucide-react";
+import { useTheme } from "next-themes";
 
 export function CanvasSheet({
   roomName,
@@ -29,6 +32,7 @@ export function CanvasSheet({
   userId: string;
   userName: string;
 }) {
+  const { theme } = useTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [game, setGame] = useState<Game>();
   const [scale, setScale] = useState<number>(1);
@@ -46,7 +50,9 @@ export function CanvasSheet({
   const strokeWidthRef = useRef(strokeWidth);
   const bgFillRef = useRef(bgFill);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [canvasColor, setCanvasColor] = useState("#000000");
+  const [canvasColor, setCanvasColor] = useState<string>(
+    theme === "light" ? canvasBgLight[0] : canvasBgDark[0]
+  );
   const canvasColorRef = useRef(canvasColor);
 
   const { isConnected, messages, sendMessage } = useWebSocket(
@@ -55,6 +61,10 @@ export function CanvasSheet({
     userId,
     userName
   );
+
+  useEffect(() => {
+    setCanvasColor(theme === "light" ? canvasBgLight[0] : canvasBgDark[0]);
+  }, [theme]);
 
   useEffect(() => {
     paramsRef.current = { roomId, roomName, userId, userName };
@@ -232,7 +242,7 @@ export function CanvasSheet({
           variant="ghost"
           size="icon"
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="mr-2 bg-[#ececf4] bxs p-2.5 rounded-md"
+          className="mr-2 bg-[#ececf4] dark:bg-w-bg dark:hover:bg-w-button-hover-bg border-none surface-box-shadow p-2.5 rounded-lg"
           data-sidebar-trigger
         >
           <Menu className="h-5 w-5" />
