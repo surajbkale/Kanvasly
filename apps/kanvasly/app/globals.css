@@ -63,6 +63,7 @@ body {
 
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -115,6 +116,7 @@ body {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -124,7 +126,16 @@ body {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+:root {
+  --color-surface-lowest: #ffffff;
+}
+
+.bxs {
+  box-shadow: 0 0 0 1px var(--color-surface-lowest);
 }
