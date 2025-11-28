@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Palette,
   Command,
@@ -33,15 +33,19 @@ interface MobileNavbarProps {
 export function MobileNavbar({
   canvasColor,
   setCanvasColor,
+  sidebarOpen,
+  setSidebarOpen,
 }: MobileNavbarProps) {
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [commandsOpen, setCommandsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    console.log("sidebarOpen = ", sidebarOpen);
+  }, [sidebarOpen]);
 
   return (
     <>
-      {/* Modern Mobile Bottom Navigation */}
       <footer className="fixed bottom-0 left-0 right-0 z-50 md:hidden w-full max-w-full min-w-full ">
         <div className="mx-auto max-w-md px-4 pb-4">
           <div className="flex items-center justify-between rounded-[8px] border p-2 backdrop-blur-md Island">
@@ -83,7 +87,6 @@ export function MobileNavbar({
         </div>
       </footer>
 
-      {/* Color Picker Sheet */}
       <Sheet open={colorPickerOpen} onOpenChange={setColorPickerOpen}>
         <SheetContent
           side="bottom"
@@ -98,7 +101,6 @@ export function MobileNavbar({
         </SheetContent>
       </Sheet>
 
-      {/* Commands Sheet */}
       <Sheet open={commandsOpen} onOpenChange={setCommandsOpen}>
         <SheetContent
           side="bottom"
@@ -132,7 +134,6 @@ export function MobileNavbar({
         </SheetContent>
       </Sheet>
 
-      {/* Settings Sheet */}
       <Sheet open={settingsOpen} onOpenChange={setSettingsOpen}>
         <SheetContent
           side="bottom"
@@ -181,13 +182,14 @@ function NavbarButton({
   return (
     <button
       className={cn(
-        "flex flex-col items-center justify-center w-8 h-8 rounded-lg transition-all hover:bg-light-btn-hover-bg text-icon-fill-color-d dark:bg-transparent dark:hover:bg-d-btn-hover-bg dark:text-white",
+        "flex flex-col items-center justify-center w-8 h-8 rounded-lg transition-all hover:bg-light-btn-hover-bg text-icon-fill-color dark:bg-transparent dark:hover:bg-d-btn-hover-bg dark:text-white",
         label === "Menu" ? "menu-btn-box-shadow bg-light-btn-bg" : "",
         active ? "bg-light-btn-hover-bg dark:bg-d-btn-hover-bg" : ""
       )}
       onClick={onClick}
+      {...(label === "Menu" && { "data-sidebar-trigger": true })}
     >
-      <Icon className="w- h-5" />
+      <Icon className="w-5 h-5" />
       <span className="text-xs font-medium hidden">{label}</span>
     </button>
   );

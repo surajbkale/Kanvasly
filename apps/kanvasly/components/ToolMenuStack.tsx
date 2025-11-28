@@ -1,12 +1,11 @@
 "use client";
 
 import type React from "react";
-import { Command } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
 import { BgFill, StrokeFill, StrokeWidth, ToolType } from "@/types/canvas";
 import { ColorBoard } from "./color-board";
+import ItemLabel from "./ItemLabel";
+import { Input } from "./ui/input";
+import { cn } from "@/lib/utils";
 
 interface SidebarProps {
   activeTool: ToolType;
@@ -18,17 +17,11 @@ interface SidebarProps {
   setBgFill: React.Dispatch<React.SetStateAction<BgFill>>;
 }
 
-// interface SidebarProps {
-//     isOpen: boolean
-//     onClose: () => void
-//     canvasColor: string
-//     setCanvasColor: (color: string) => void
-// }
-
 export function ToolMenuStack({
   activeTool,
   strokeFill,
   setStrokeFill,
+  strokeWidth,
   setStrokeWidth,
   bgFill,
   setBgFill,
@@ -41,45 +34,24 @@ export function ToolMenuStack({
 
   return (
     <>
-      <aside className="absolute top-full bg-background dark:bg-w-bg rounded-lg transition-transform duration-300 ease-in-out md:z-30 mt-2">
-        <div className="flex h-[calc(100vh-150px)] flex-col Island rounded-lg tool-menu-stack">
-          {/* Menu items */}
-          <div className="flex-1 overflow-auto py-1 custom-scrollbar">
-            <nav className="grid gap-1 px-2">
-              <SidebarItem
-                icon={Command}
-                label="Command palette"
-                shortcut="Ctrl+/"
-              />
-              <Separator className="my-4 dark:bg-w-border-color" />
-              <SidebarItem icon={Command} label="Excalidraw+" />
-            </nav>
-          </div>
+      <aside className="ToolMenuStack absolute top-full w-56 p-3 h-[calc(100vh-150px)] overflow-auto custom-scrollbar bg-background dark:bg-w-bg rounded-lg transition-transform duration-300 ease-in-out z-10 mt-2 Island">
+        <div className="flex flex-col gap-y-3">
+          <ColorBoard
+            mode="Shape"
+            bgFill={bgFill}
+            setBgFill={setBgFill}
+            strokeFill={strokeFill}
+            setStrokeFill={setStrokeFill}
+          />
 
-          {/* Theme and color picker */}
-          <div className="border-t p-4">
-            <h3 className="mb-2 text-sm font-medium dark:text-w-text">
-              Background Color
-            </h3>
-            <ColorBoard
-              mode="Shape"
-              bgFill={bgFill}
-              setBgFill={setBgFill}
-              strokeFill={strokeFill}
-              setStrokeFill={setStrokeFill}
-            />
-          </div>
-
-          {/* Stroke picker */}
-          <div className="border-t p-4">
-            <h3 className="mb-2 text-sm font-medium dark:text-w-text">
-              Stroke width
-            </h3>
-            <div className="flex gap-2 h-7 items-center">
+          <div className="">
+            <ItemLabel label="Stroke width" />
+            <div className="flex flex-wrap gap-x-2 gap-y-2 items-center py-1">
               {strokeWidths.map((sw, index) => (
                 <StrokeWidthIndicator
                   key={index}
-                  strokeWidth={sw}
+                  strokeWidth={strokeWidth}
+                  strokeWidthProp={sw}
                   onClick={() => setStrokeWidth(sw)}
                 />
               ))}
@@ -91,59 +63,42 @@ export function ToolMenuStack({
   );
 }
 
-interface SidebarItemProps {
-  icon: React.ElementType;
-  label: string;
-  shortcut?: string;
-  className?: string;
-  onClick?: () => void;
-}
-
-function SidebarItem({
-  icon: Icon,
-  label,
-  shortcut,
-  className,
-  onClick,
-}: SidebarItemProps) {
-  return (
-    <Button
-      variant="ghost"
-      className={cn(
-        "flex h-10 w-full justify-start gap-2 rounded-md px-3 text-sm font-medium transition-colors dark:text-w-text dark:hover:text-w-text dark:hover:bg-w-button-hover-bg",
-        className
-      )}
-      onClick={onClick}
-    >
-      <Icon className="h-4 w-4" />
-      <span>{label}</span>
-      {shortcut && (
-        <kbd className="ml-auto inline-flex h-5 select-none items-center gap-1 rounded px-1.5 font-mono text-[10px] font-medium opacity-100 bg-muted text-muted-foreground dark:text-[var(--RadioGroup-choice-color-on)] dark:bg-[var(--RadioGroup-choice-background-on)] dark:hover:bg-[var(--RadioGroup-choice-background-on-hover)]">
-          {shortcut}
-        </kbd>
-      )}
-    </Button>
-  );
-}
-
 const StrokeWidthIndicator = ({
   strokeWidth,
+  strokeWidthProp,
   onClick,
 }: {
   strokeWidth: StrokeWidth;
+  strokeWidthProp: StrokeWidth;
   onClick?: () => void;
 }) => {
   return (
-    <div
-      className={
-        "w-[1.4rem] h-[1.4rem] rounded-sm cursor-pointer hover:border-white-70 border-white/10 border transition-all flex items-center"
+    <label
+      className={cn(
+        "active flex justify-center items-center w-8 h-8 p-0 box-border border border-default-border-color rounded-lg cursor-pointer bg-light-btn-bg2 text-text-primary-color dark:bg-w-button-hover-bg dark:hover:bg-tool-btn-bg-hover-dark dark:text-text-primary-color dark:border-w-button-hover-bg focus-within:shadow-shadow-tool-focus",
+        strokeWidth === strokeWidthProp
+          ? "bg-selected-tool-bg-light dark:bg-selected-tool-bg-dark dark:border-selected-tool-bg-dark"
+          : ""
+      )}
+      title={
+        strokeWidthProp === 1
+          ? "Thin"
+          : strokeWidthProp === 2
+            ? "Bold"
+            : "Extra bold"
       }
       onClick={onClick}
     >
-      <div
-        style={{ height: `${strokeWidth}px` }}
-        className="w-full bg-white/80"
+      <Input
+        type="radio"
+        checked={strokeWidth === strokeWidthProp}
+        name="stroke-width"
+        className="opacity-0 absolute pointer-events-none"
       />
-    </div>
+      <div
+        style={{ height: `${strokeWidthProp * 2}px` }}
+        className="w-4 rounded-[10px] bg-color-on-primary-container dark:bg-icon-fill-color-d"
+      />
+    </label>
   );
 };

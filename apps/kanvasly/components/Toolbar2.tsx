@@ -28,7 +28,7 @@ export function Toolbar2({
 }: ToolbarProps) {
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1.5 rounded-lg Island">
+      <header className="fixed top-4 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1.5 rounded-lg Island">
         <div className="flex items-center gap-1">
           {tools.map((tool) => (
             <Tooltip key={tool.type}>
@@ -37,7 +37,7 @@ export function Toolbar2({
                   variant={selectedTool === tool.type ? "secondary" : "ghost"}
                   size="icon"
                   onClick={() => onToolSelect(tool.type)}
-                  className={`xl:relative ${selectedTool === tool.type ? "bg-l-selected-tool-bg text-[var(--color-on-primary-container)] dark:bg-d-selected-tool-bg dark:text-white" : "text-icon-fill-color hover:text-icon-fill-color dark:text-icon-fill-color-d dark:hover:text-icon-fill-color-d hover:bg-light-btn-hover-bg dark:hover:bg-d-btn-hover-bg"}`}
+                  className={`xl:relative ${selectedTool === tool.type ? "bg-selected-tool-bg-light text-[var(--color-on-primary-container)] dark:bg-selected-tool-bg-dark dark:text-white" : "text-icon-fill-color hover:text-icon-fill-color dark:text-icon-fill-color-d dark:hover:text-icon-fill-color-d hover:bg-light-btn-hover-bg dark:hover:bg-d-btn-hover-bg"}`}
                 >
                   {tool.icon}
                   <span className="sr-only">{tool.label}</span>
@@ -84,7 +84,7 @@ export function Toolbar2({
             <TooltipContent>Redo</TooltipContent>
           </Tooltip>
         </div>
-      </div>
+      </header>
     </TooltipProvider>
   );
 }

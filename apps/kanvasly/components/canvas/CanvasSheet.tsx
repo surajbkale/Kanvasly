@@ -12,15 +12,13 @@ import {
   ToolType,
 } from "@/types/canvas";
 import { useCallback, useEffect, useRef, useState } from "react";
-// import { Sidebar } from "./Sidebar";
 import { Scale } from "../Scale";
 import { Toolbar2 } from "../Toolbar2";
 import { MobileNavbar } from "../mobile-navbar";
-import { Button } from "../ui/button";
-import { Menu } from "lucide-react";
 import { useTheme } from "next-themes";
 import { MainMenuStack } from "../MainMenuStack";
 import { ToolMenuStack } from "../ToolMenuStack";
+import SidebarTriggerButton from "../SidebarTriggerButton";
 
 export function CanvasSheet({
   roomName,
@@ -64,6 +62,10 @@ export function CanvasSheet({
   useEffect(() => {
     setCanvasColor(theme === "light" ? canvasBgLight[0] : canvasBgDark[0]);
   }, [theme]);
+
+  useEffect(() => {
+    console.log("current value of sidebarOpen = ", sidebarOpen);
+  }, [sidebarOpen]);
 
   useEffect(() => {
     paramsRef.current = { roomId, roomName, userId, userName };
@@ -157,12 +159,15 @@ export function CanvasSheet({
           setActiveTool("ellipse");
           break;
         case "4":
-          setActiveTool("line");
+          setActiveTool("diamond");
           break;
         case "5":
-          setActiveTool("pen");
+          setActiveTool("line");
           break;
         case "6":
+          setActiveTool("pen");
+          break;
+        case "7":
           setActiveTool("eraser");
           break;
         default:
@@ -230,29 +235,17 @@ export function CanvasSheet({
     }
   }, [game?.outputScale]);
 
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen((prev) => !prev);
+  }, []);
+
   return (
     <div
-      className={`h-screen overflow-hidden 
-            ${
-              activeTool === "grab"
-                ? grabbing
-                  ? "cursor-grabbing"
-                  : "cursor-grab"
-                : "cursor-crosshair"
-            } `}
+      className={`h-screen overflow-hidden ${activeTool === "grab" ? (grabbing ? "cursor-grabbing" : "cursor-grab") : "cursor-crosshair"} `}
     >
       <div className="fixed top-4 left-4 flex items-center justify-center">
         <div className="relative">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="mr-2 bg-[#ececf4] dark:bg-w-bg dark:hover:bg-w-button-hover-bg border-none surface-box-shadow p-2.5 rounded-lg"
-            data-sidebar-trigger
-          >
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle sidebar</span>
-          </Button>
+          <SidebarTriggerButton onClick={toggleSidebar} />
           {sidebarOpen && (
             <MainMenuStack
               isOpen={sidebarOpen}
@@ -281,20 +274,6 @@ export function CanvasSheet({
         onRedo={() => {}}
         onUndo={() => {}}
       />
-      {/* <Sidebar activeTool={activeTool}
-                strokeFill={strokeFill}
-                setStrokeFill={setStrokeFill}
-                strokeWidth={strokeWidth}
-                setStrokeWidth={setStrokeWidth}
-                bgFill={bgFill}
-                setBgFill={setBgFill}
-            /> */}
-      {/* <MobSidebar
-                isOpen={sidebarOpen}
-                onClose={() => setSidebarOpen(false)}
-                canvasColor={canvasColor}
-                setCanvasColor={setCanvasColor}
-            /> */}
 
       <Scale scale={scale} setScale={setScale} />
       <MobileNavbar
