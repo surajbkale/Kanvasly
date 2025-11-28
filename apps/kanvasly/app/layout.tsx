@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Kanvasly",
-  description: "Kanvasly Build by Suraj Kale",
+  description: "Kanvasly Build By Suraj Kale",
 };
 
 export default function RootLayout({
@@ -31,14 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex min-h-screen flex-col bg-background`}
       >
         <Provider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
+          <ThemeProvider>{children}</ThemeProvider>
           <Toaster />
         </Provider>
       </body>

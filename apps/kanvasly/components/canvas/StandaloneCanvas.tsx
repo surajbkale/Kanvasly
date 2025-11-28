@@ -1,6 +1,5 @@
 "use client";
 
-import { useWebSocket } from "@/hooks/useWebSocket";
 import { Game } from "@/draw/Game";
 import {
   BgFill,
@@ -21,17 +20,7 @@ import { ToolMenuStack } from "../ToolMenuStack";
 import SidebarTriggerButton from "../SidebarTriggerButton";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
-export function CanvasSheet({
-  roomName,
-  roomId,
-  userId,
-  userName,
-}: {
-  roomName: string;
-  roomId: string;
-  userId: string;
-  userName: string;
-}) {
+export function StandaloneCanvas() {
   const { theme } = useTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [game, setGame] = useState<Game>();
@@ -42,7 +31,6 @@ export function CanvasSheet({
   const [bgFill, setBgFill] = useState<BgFill>("#00000000");
   const [grabbing, setGrabbing] = useState(false);
   const [existingShapes, setExistingShapes] = useState<Shape[]>([]);
-  const paramsRef = useRef({ roomId, roomName, userId, userName });
   const activeToolRef = useRef(activeTool);
   const strokeFillRef = useRef(strokeFill);
   const strokeWidthRef = useRef(strokeWidth);
@@ -53,50 +41,16 @@ export function CanvasSheet({
   );
   const canvasColorRef = useRef(canvasColor);
 
-  const { isConnected, messages, sendMessage } = useWebSocket(
-    roomId,
-    roomName,
-    userId,
-    userName
-  );
-
   const isMediumScreen = useMediaQuery("md");
+
+  const clearCanvas = useCallback(() => {
+    game?.clearAllShapes();
+    setExistingShapes([]);
+  }, [game]);
 
   useEffect(() => {
     setCanvasColor(theme === "light" ? canvasBgLight[0] : canvasBgDark[0]);
   }, [theme]);
-
-  useEffect(() => {
-    paramsRef.current = { roomId, roomName, userId, userName };
-  }, [roomId, roomName, userId, userName]);
-
-  useEffect(() => {
-    if (messages.length > 0) {
-      try {
-        messages.forEach((message) => {
-          console.log("message = ", message);
-          try {
-            const data = JSON.parse(message.content);
-            if (data.type === "draw") {
-              const shape = JSON.parse(data.data).shape;
-              setExistingShapes((prevShapes) => [...prevShapes, shape]);
-            } else if (data.type === "eraser") {
-              const shape = JSON.parse(data.data).shape;
-              setExistingShapes((prevShapes) =>
-                prevShapes.filter(
-                  (s) => JSON.stringify(s) !== JSON.stringify(shape)
-                )
-              );
-            }
-          } catch (e) {
-            console.error("Error processing message:", e);
-          }
-        });
-      } catch (e) {
-        console.error("Error processing messages:", e);
-      }
-    }
-  }, [messages]);
 
   useEffect(() => {
     game?.setTool(activeTool);
@@ -179,25 +133,17 @@ export function CanvasSheet({
     };
   }, [setActiveTool]);
 
-  const handleSendDrawing = useCallback(
-    (msgData: string) => {
-      if (isConnected) {
-        sendMessage(msgData);
-      }
-    },
-    [isConnected, sendMessage]
-  );
-
   useEffect(() => {
     if (canvasRef.current) {
       const game = new Game(
         canvasRef.current,
-        paramsRef.current.roomId,
+        null,
         canvasColorRef.current,
-        handleSendDrawing,
-        paramsRef.current.roomName,
+        null,
+        null,
         (newScale) => setScale(newScale),
-        []
+        [],
+        true
       );
       setGame(game);
 
@@ -210,7 +156,7 @@ export function CanvasSheet({
         game.destroy();
       };
     }
-  }, [canvasRef, handleSendDrawing]);
+  }, [canvasRef]);
 
   useEffect(() => {
     if (activeTool === "grab") {
@@ -238,6 +184,54 @@ export function CanvasSheet({
     setSidebarOpen((prev) => !prev);
   }, []);
 
+  const exportCanvas = useCallback(() => {
+    const dataStr = JSON.stringify(existingShapes);
+    const dataUri =
+      "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
+
+    const exportFileDefaultName = "canvas-drawing.json";
+
+    const linkElement = document.createElement("a");
+    linkElement.setAttribute("href", dataUri);
+    linkElement.setAttribute("download", exportFileDefaultName);
+    linkElement.click();
+  }, [existingShapes]);
+
+  const importCanvas = useCallback(() => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/json";
+
+    input.onchange = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const file = target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const shapes = JSON.parse(event.target?.result as string);
+            setExistingShapes(shapes);
+
+            localStorage.setItem(
+              "standalone_canvas_shapes",
+              JSON.stringify(shapes)
+            );
+
+            if (game) {
+              game.updateShapes(shapes);
+            }
+          } catch (err) {
+            console.error("Failed to parse JSON file", err);
+            alert("Failed to load the drawing. The file might be corrupted.");
+          }
+        };
+        reader.readAsText(file);
+      }
+    };
+
+    input.click();
+  }, [game]);
+
   return (
     <div
       className={`h-screen overflow-hidden ${activeTool === "grab" ? (grabbing ? "cursor-grabbing" : "cursor-grab") : "cursor-crosshair"} `}
@@ -253,7 +247,10 @@ export function CanvasSheet({
                   onClose={() => setSidebarOpen(false)}
                   canvasColor={canvasColor}
                   setCanvasColor={setCanvasColor}
-                  roomName={roomName}
+                  isStandalone={true}
+                  onClearCanvas={clearCanvas}
+                  onExportCanvas={exportCanvas}
+                  onImportCanvas={importCanvas}
                 />
               )}
 
@@ -295,7 +292,10 @@ export function CanvasSheet({
         setStrokeWidth={setStrokeWidth}
         bgFill={bgFill}
         setBgFill={setBgFill}
-        roomName={roomName}
+        isStandalone={true}
+        onClearCanvas={clearCanvas}
+        onExportCanvas={exportCanvas}
+        onImportCanvas={importCanvas}
       />
       <canvas ref={canvasRef} />
     </div>

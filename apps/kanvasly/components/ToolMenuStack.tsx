@@ -15,6 +15,7 @@ interface SidebarProps {
   setStrokeWidth: React.Dispatch<React.SetStateAction<StrokeWidth>>;
   bgFill: BgFill;
   setBgFill: React.Dispatch<React.SetStateAction<BgFill>>;
+  isMobile?: boolean;
 }
 
 export function ToolMenuStack({
@@ -25,6 +26,7 @@ export function ToolMenuStack({
   setStrokeWidth,
   bgFill,
   setBgFill,
+  isMobile,
 }: SidebarProps) {
   const strokeWidths: StrokeWidth[] = [1, 2, 4];
 
@@ -34,7 +36,14 @@ export function ToolMenuStack({
 
   return (
     <>
-      <aside className="ToolMenuStack absolute top-full w-56 p-3 h-[calc(100vh-150px)] overflow-auto custom-scrollbar bg-background dark:bg-w-bg rounded-lg transition-transform duration-300 ease-in-out z-10 mt-2 Island">
+      <aside
+        className={cn(
+          "ToolMenuStack p-3 overflow-auto custom-scrollbar transition-transform duration-300 ease-in-out z-10 mt-2",
+          isMobile
+            ? ""
+            : "absolute top-full w-56 h-[calc(100vh-150px)] bg-background dark:bg-w-bg rounded-lg Island"
+        )}
+      >
         <div className="flex flex-col gap-y-3">
           <ColorBoard
             mode="Shape"
@@ -92,6 +101,7 @@ const StrokeWidthIndicator = ({
       <Input
         type="radio"
         checked={strokeWidth === strokeWidthProp}
+        onChange={() => onClick?.()}
         name="stroke-width"
         className="opacity-0 absolute pointer-events-none"
       />

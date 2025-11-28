@@ -5,9 +5,6 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import {
   Command,
-  Search,
-  HelpCircle,
-  RefreshCw,
   Github,
   Twitter,
   MessageSquare,
@@ -16,20 +13,34 @@ import {
   Moon,
   Monitor,
   X,
+  Trash,
+  LogOut,
+  CopyIcon,
+  TrashIcon,
+  DownloadIcon,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ColorPicker } from "@/components/color-picker";
 import { ConfirmDialog } from "./confirm-dialog";
-import { clearCanvas } from "@/actions/canvas";
+// import { clearCanvas } from "@/actions/canvas"
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
+import { clearAllChats } from "@/actions/chat";
+import { signOut } from "next-auth/react";
 
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   canvasColor: string;
   setCanvasColor: (color: string) => void;
+  isMobile?: boolean;
+  roomName?: string;
+  isStandalone?: boolean;
+  onClearCanvas?: () => void;
+  onExportCanvas?: () => void;
+  onImportCanvas?: () => void;
 }
 
 export function MainMenuStack({
@@ -37,6 +48,12 @@ export function MainMenuStack({
   onClose,
   canvasColor,
   setCanvasColor,
+  isMobile,
+  roomName,
+  isStandalone = false,
+  onClearCanvas,
+  onExportCanvas,
+  onImportCanvas,
 }: SidebarProps) {
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const { theme, setTheme } = useTheme();
@@ -73,17 +90,28 @@ export function MainMenuStack({
         onOpenChange={setClearDialogOpen}
         title="Clear canvas"
         description="This will clear the whole canvas. Are you sure?"
-        onConfirm={clearCanvas}
+        onClearCanvas={isStandalone ? onClearCanvas : undefined}
+        onConfirm={
+          !isStandalone
+            ? () => clearAllChats({ roomName: roomName! })
+            : undefined
+        }
         variant="destructive"
       />
 
       <aside
         data-sidebar
         className={cn(
-          "absolute top-full bg-background dark:bg-w-bg rounded-lg transition-transform duration-300 ease-in-out z-20 mt-2"
+          "transition-transform duration-300 ease-in-out z-20",
+          isMobile ? "" : "absolute top-full mt-2"
         )}
       >
-        <div className="flex h-[calc(100vh-150px)] flex-col Island rounded-lg">
+        <div
+          className={cn(
+            "flex flex-col",
+            isMobile ? "" : "h-[calc(100vh-150px)] Island rounded-lg"
+          )}
+        >
           <Button
             variant="ghost"
             size="icon"
@@ -94,36 +122,75 @@ export function MainMenuStack({
             <span className="sr-only">Close sidebar</span>
           </Button>
 
-          <div className="flex-1 overflow-auto py-1 custom-scrollbar">
-            <nav className="grid gap-1 px-2">
+          <div
+            className={cn(
+              "py-1",
+              isMobile ? "" : "flex-1 overflow-auto py-1 custom-scrollbar"
+            )}
+          >
+            <nav className={cn("grid gap-1", isMobile ? "px-0" : "px-2")}>
               <SidebarItem
                 icon={Command}
                 label="Command palette"
                 shortcut="Ctrl+/"
               />
-              <SidebarItem
-                icon={Search}
-                label="Find on canvas"
-                shortcut="Ctrl+F"
-              />
-              <SidebarItem icon={HelpCircle} label="Help" shortcut="?" />
-              <SidebarItem
-                icon={RefreshCw}
-                label="Clear canvas"
-                onClick={() => setClearDialogOpen(true)}
-              />
+
+              {isStandalone ? (
+                <>
+                  <SidebarItem
+                    icon={TrashIcon}
+                    label="Clear canvas"
+                    onClick={() => setClearDialogOpen(true)}
+                  />
+                  <SidebarItem
+                    icon={DownloadIcon}
+                    label="Export Drawing"
+                    onClick={onExportCanvas}
+                  />
+                  <SidebarItem
+                    icon={Upload}
+                    label="Import Drawing"
+                    onClick={onImportCanvas}
+                  />
+                  <SidebarItem
+                    icon={UserPlus}
+                    label="Sign up"
+                    className="text-color-promo hover:text-color-promo font-bold"
+                  />
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "flex h-10 w-full justify-start gap-2 rounded-md px-3 text-sm font-medium transition-colors dark:text-w-text dark:hover:text-w-text dark:hover:bg-w-button-hover-bg"
+                    )}
+                    onClick={() =>
+                      navigator.clipboard.writeText(window.location.href)
+                    }
+                  >
+                    <CopyIcon className="h-4 w-4" />
+                    <span>{roomName}</span>
+                  </Button>
+                  <SidebarItem
+                    icon={Trash}
+                    label="Reset the canvas"
+                    onClick={() => setClearDialogOpen(true)}
+                  />
+                  <SidebarItem
+                    icon={LogOut}
+                    label="Log Out"
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                  />
+                </>
+              )}
 
               <Separator className="my-4 dark:bg-default-border-color-dark" />
 
-              <SidebarItem icon={Command} label="Excalidraw+" />
+              <SidebarItem icon={Command} label="CollabyDraw+" />
               <SidebarItem icon={Github} label="GitHub" />
               <SidebarItem icon={Twitter} label="Follow us" />
               <SidebarItem icon={MessageSquare} label="Discord chat" />
-              <SidebarItem
-                icon={UserPlus}
-                label="Sign up"
-                className="text-color-promo hover:text-color-promo font-bold"
-              />
             </nav>
           </div>
 
