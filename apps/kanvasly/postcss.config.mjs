@@ -11,7 +11,6 @@ const config = {
   theme: {
     extend: {
       colors: {
-        lightb: "#f1f0ff",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -62,6 +61,12 @@ const config = {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        lightb: "#f1f0ff",
+        "w-bg": "var(--w-bg)",
+        "w-text": "var(--w-text)",
+        "w-button-hover-bg": "hsl(var(--w-button-hover-bg))",
+        "w-border-color": "hsl(var(--w-border-color))",
+        "color-promo": "var(--color-promo)",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -84,8 +89,12 @@ const config = {
       },
     },
   },
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require("tailwindcss-animate"),
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require("tailwind-scrollbar")({ nocompatible: true }),
+  ],
 };
 
 export default config;
