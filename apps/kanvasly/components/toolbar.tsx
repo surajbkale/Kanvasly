@@ -6,47 +6,52 @@ import {
   RectangleHorizontalIcon,
   Slash,
 } from "lucide-react";
-import { ReactNode } from "react";
 import { Separator } from "./ui/separator";
-import { ShapeType } from "@/types/canvas";
+import { Tool, ToolType } from "@/types/canvas";
 import { ToolButton } from "./ToolButton";
 
 interface ToolbarProps {
-  activeTool: ShapeType;
-  setActiveTool: (s: ShapeType) => void;
+  activeTool: ToolType;
+  setActiveTool: (s: ToolType) => void;
 }
 
 export const Toolbar = ({ activeTool, setActiveTool }: ToolbarProps) => {
-  const Tool: { tool: ShapeType; icon: ReactNode; shortcut: number }[] = [
+  const Tool: Tool[] = [
     {
-      tool: "grab",
+      type: "grab",
       icon: <HandIcon />,
       shortcut: 1,
+      label: "Grab",
     },
     {
-      tool: "rectangle",
+      type: "rectangle",
       icon: <RectangleHorizontalIcon />,
       shortcut: 2,
+      label: "Rectangle",
     },
     {
-      tool: "ellipse",
+      type: "ellipse",
       icon: <Circle />,
       shortcut: 3,
+      label: "Ellipse",
     },
     {
-      tool: "line",
+      type: "line",
       icon: <Slash />,
       shortcut: 4,
+      label: "Line",
     },
     {
-      tool: "pen",
+      type: "pen",
       icon: <Pencil />,
       shortcut: 5,
+      label: "Arrow",
     },
     {
-      tool: "eraser",
+      type: "eraser",
       icon: <Eraser />,
       shortcut: 6,
+      label: "Eraser",
     },
   ];
 
@@ -55,15 +60,15 @@ export const Toolbar = ({ activeTool, setActiveTool }: ToolbarProps) => {
       <div className="flex bg-[#232329] px-4 py-1 rounded-md gap-3 h-full">
         {Tool.map((tool) => {
           return (
-            <div key={tool.tool} className="flex items-center">
+            <div key={tool.type} className="flex items-center">
               <ToolButton
-                active={activeTool === tool.tool}
-                onClick={() => setActiveTool(tool.tool)}
+                active={activeTool === tool.type}
+                onClick={() => setActiveTool(tool.type)}
                 icon={tool.icon}
                 shortcut={tool.shortcut}
-                tool={tool.tool}
+                tool={tool.type}
               />
-              {tool.tool === "grab" ? (
+              {tool.type === "grab" ? (
                 <Separator
                   orientation="vertical"
                   className="bg-white/20 mx-1"
