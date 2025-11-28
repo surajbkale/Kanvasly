@@ -7,12 +7,7 @@ import { Check, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import {
-  canvasBgDark,
-  canvasBgLight,
-  DEFAULT_CANVAS_BACKGROUND_DARK,
-  DEFAULT_CANVAS_BACKGROUND_LIGHT,
-} from "@/types/canvas";
+import { canvasBgDark, canvasBgLight } from "@/types/canvas";
 import { useTheme } from "next-themes";
 
 interface ColorPickerProps {
@@ -20,15 +15,11 @@ interface ColorPickerProps {
   onChange: (color: string) => void;
 }
 
-type canvasBgType =
-  | DEFAULT_CANVAS_BACKGROUND_LIGHT[]
-  | DEFAULT_CANVAS_BACKGROUND_DARK[];
-
 export function ColorPicker({ value, onChange }: ColorPickerProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState(value);
   const { theme } = useTheme();
-  const [canvasBg, setCanvasBg] = useState<canvasBgType>(
+  const [canvasBg, setCanvasBg] = useState(
     theme === "dark" ? canvasBgDark : canvasBgLight
   );
 
@@ -75,8 +66,8 @@ export function ColorPicker({ value, onChange }: ColorPickerProps) {
 
   return (
     <div className="space-y-3">
-      {/* Color swatches */}
-      <div className="grid grid-cols-6 gap-2">
+      {/* Color swatches ` */}
+      <div className="flex items-center justify-between">
         {canvasBg.map((color) => (
           <button
             key={color}

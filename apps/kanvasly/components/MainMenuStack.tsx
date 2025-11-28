@@ -139,7 +139,7 @@ export function MainMenuStack({
               <h3 className="mb-2 text-sm font-medium dark:text-w-text flex items-center w-full text-ellipsis overflow-hidden whitespace-nowrap">
                 Theme
               </h3>
-              <div className="flex gap-1 box-border flex-row items-start p-[3px] rounded-[10px] dark:bg-w-bg border border-[var(--RadioGroup-border)]">
+              <div className="flex gap-1 cu box-border flex-row items-start p-[3px] rounded-[10px] dark:bg-w-bg border border-[var(--RadioGroup-border)]">
                 <Button
                   onClick={() => setTheme("light")}
                   variant="outline"

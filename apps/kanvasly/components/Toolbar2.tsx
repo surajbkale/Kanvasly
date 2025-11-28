@@ -37,11 +37,11 @@ export function Toolbar2({
                   variant={selectedTool === tool.type ? "secondary" : "ghost"}
                   size="icon"
                   onClick={() => onToolSelect(tool.type)}
-                  className={`xl:relative text-icon-fill-color-d hover:bg-light-btn-hover-bg ${selectedTool === tool.type ? "bg-[var(--color-surface-primary-container)] text-[var(--color-on-primary-container)]" : ""}`}
+                  className={`xl:relative ${selectedTool === tool.type ? "bg-l-selected-tool-bg text-[var(--color-on-primary-container)] dark:bg-d-selected-tool-bg dark:text-white" : "text-icon-fill-color hover:text-icon-fill-color dark:text-icon-fill-color-d dark:hover:text-icon-fill-color-d hover:bg-light-btn-hover-bg dark:hover:bg-d-btn-hover-bg"}`}
                 >
                   {tool.icon}
                   <span className="sr-only">{tool.label}</span>
-                  <span className="hidden xl:block absolute -bottom-1 right-1 text-[11px] text-black/60">
+                  <span className="hidden xl:block absolute -bottom-1 right-1 text-[11px] text-black/60 dark:text-icon-fill-color-d">
                     {tool.shortcut}
                   </span>
                 </Button>
