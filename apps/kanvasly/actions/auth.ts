@@ -1,16 +1,15 @@
-"user server";
+"use server";
 
 import { SignupSchema } from "@repo/common/types";
 import client from "@repo/db/client";
 import bcrypt from "bcrypt";
-import { success, z } from "zod";
+import { z } from "zod";
 
 export async function signUp(values: z.infer<typeof SignupSchema>) {
-  console.log(`Database_url in signup action = ${process.env.DATABASE_URL}`);
   const validatedFields = SignupSchema.safeParse(values);
 
   if (!validatedFields.success) {
-    return { error: "Invalid fields" };
+    return { error: "Invalid fields." };
   }
 
   const { name, email, password } = validatedFields.data;
@@ -22,7 +21,7 @@ export async function signUp(values: z.infer<typeof SignupSchema>) {
   });
 
   if (existingUser) {
-    return { error: "User alread exists" };
+    return { error: "User already exists." };
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -39,7 +38,7 @@ export async function signUp(values: z.infer<typeof SignupSchema>) {
     return { success: true };
   } catch (error) {
     const errorMessage =
-      error instanceof Error ? error.message : "Some Brutal error";
+      error instanceof Error ? error.message : "Some Brutal Error";
     console.error("Error: ", errorMessage);
     return { error: "Error creating user." };
   }

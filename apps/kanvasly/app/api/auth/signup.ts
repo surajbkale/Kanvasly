@@ -7,7 +7,6 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method === "POST") {
-    console.log(`Database_url in signup action = ${process.env.DATABASE_URL}`);
     const { name, email, password } = req.body;
 
     const existingUser = await client.user.findUnique({
@@ -15,9 +14,7 @@ export default async function handler(
     });
 
     if (existingUser) {
-      return res.status(400).json({
-        error: "User already exists",
-      });
+      return res.status(400).json({ error: "User already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -31,12 +28,8 @@ export default async function handler(
       },
     });
 
-    return res.status(200).json({
-      message: "User created successfully",
-      user,
-    });
+    return res.status(200).json({ message: "User created successfully", user });
   }
-  return res.status(405).json({
-    error: "Method not allowed",
-  });
+
+  return res.status(405).json({ error: "Method not allowed" });
 }

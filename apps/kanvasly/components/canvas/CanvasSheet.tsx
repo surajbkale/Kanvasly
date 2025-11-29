@@ -21,7 +21,7 @@ import SidebarTriggerButton from "../SidebarTriggerButton";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import Toolbar from "../Toolbar";
 import ScreenLoading from "../ScreenLoading";
-import CollaborationStart from "../CollaborationStart";
+import CollaborationStart from "../CollaborationStartBtn";
 
 export function CanvasSheet({
   roomName,
@@ -90,7 +90,6 @@ export function CanvasSheet({
     if (messages.length > 0) {
       try {
         messages.forEach((message) => {
-          console.log("message = ", message);
           try {
             const data = JSON.parse(message.content);
             if (data.type === "draw") {
@@ -294,7 +293,7 @@ export function CanvasSheet({
           </div>
         )}
         <Toolbar selectedTool={activeTool} onToolSelect={setActiveTool} />
-        <CollaborationStart />
+        {matches && <CollaborationStart slug={roomName} />}
       </div>
 
       {matches && <Scale scale={scale} setScale={setScale} />}
