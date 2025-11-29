@@ -13,13 +13,13 @@ import {
 } from "@/types/canvas";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Scale } from "../Scale";
-import { Toolbar2 } from "../Toolbar2";
 import { MobileNavbar } from "../mobile-navbar";
 import { useTheme } from "next-themes";
 import { MainMenuStack } from "../MainMenuStack";
 import { ToolMenuStack } from "../ToolMenuStack";
 import SidebarTriggerButton from "../SidebarTriggerButton";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { Toolbar } from "../toolbar";
 
 export function CanvasSheet({
   roomName,
@@ -271,7 +271,7 @@ export function CanvasSheet({
         </div>
       </div>
 
-      <Toolbar2
+      <Toolbar
         selectedTool={activeTool}
         onToolSelect={setActiveTool}
         canRedo={false}

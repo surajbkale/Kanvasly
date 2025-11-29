@@ -70,10 +70,16 @@ export function MobileNavbar({
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const isMediumScreen = useMediaQuery("md");
 
+  const handleMenuButton = () => {
+    setSidebarOpen(!sidebarOpen);
+    console.log(">>> handleMenuButton is clickd");
+    console.log(">>> sidebarOpen = ", sidebarOpen);
+  };
+
   return (
     <>
-      <footer className="fixed bottom-0 left-0 right-0 z-50 md:hidden w-full max-w-full min-w-full ">
-        <div className="mx-auto max-w-md px-4 pb-4">
+      <footer className="Appbar_Bottom Mobile_Appbar fixed bottom-0 left-0 right-0 z-50 md:hidden w-full max-w-full min-w-full ">
+        <div className="mx-auto w-full max-w-full min-w-full px-4 pb-4">
           <div
             data-active-tool={activeTool}
             className="flex items-center justify-between rounded-[8px] border p-2 backdrop-blur-md Island"
@@ -81,7 +87,7 @@ export function MobileNavbar({
             <NavbarButton
               icon={Menu}
               label="Menu"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
+              onClick={handleMenuButton}
               active={sidebarOpen}
             />
             {activeTool !== "grab" && activeTool !== "eraser" && (
@@ -209,7 +215,6 @@ function NavbarButton({
         active ? "bg-light-btn-hover-bg dark:bg-d-btn-hover-bg" : ""
       )}
       onClick={onClick}
-      {...(label === "Menu" && { "data-sidebar-trigger": true })}
     >
       <Icon className="w-5 h-5" />
       <span className="text-xs font-medium hidden">{label}</span>

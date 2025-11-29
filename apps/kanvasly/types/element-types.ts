@@ -2,6 +2,7 @@
 // import type { ExcalidrawElement, FontFamilyValues } from "./element/types";
 // import { COLOR_PALETTE } from "./colors";
 
+
 import { COLOR_PALETTE } from "./colors";
 import { ExcalidrawElement } from "./element-types";
 

@@ -135,7 +135,7 @@ export function Sidebar({
 
               <Separator className="my-4 dark:bg-default-border-color-dark" />
 
-              <SidebarItem icon={Command} label="Excalidraw+" />
+              <SidebarItem icon={Command} label="CollabyDraw+" />
               <SidebarItem icon={Github} label="GitHub" />
               <SidebarItem icon={Twitter} label="Follow us" />
               <SidebarItem icon={MessageSquare} label="Discord chat" />

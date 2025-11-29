@@ -112,3 +112,5 @@ export type Shape =
       strokeWidth: number;
       strokeFill: string;
     };
+
+export const LOCALSTORAGE_CANVAS_KEY = "standalone_canvas_shapes";
