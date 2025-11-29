@@ -3,7 +3,6 @@
 import type React from "react";
 import {
   BgFill,
-  Edge,
   StrokeEdge,
   StrokeFill,
   StrokeWidth,
@@ -22,6 +21,8 @@ interface SidebarProps {
   setStrokeWidth: React.Dispatch<React.SetStateAction<StrokeWidth>>;
   bgFill: BgFill;
   setBgFill: React.Dispatch<React.SetStateAction<BgFill>>;
+  strokeEdge: StrokeEdge;
+  setStrokeEdge: React.Dispatch<React.SetStateAction<StrokeEdge>>;
   isMobile?: boolean;
 }
 
@@ -33,15 +34,16 @@ export function ToolMenuStack({
   setStrokeWidth,
   bgFill,
   setBgFill,
+  strokeEdge,
+  setStrokeEdge,
   isMobile,
 }: SidebarProps) {
-  const strokeWidths: StrokeWidth[] = [1, 2, 4];
-  const strokeEdge: Edge = ["sharp", "round"];
+  const lineThicknessOptions: StrokeWidth[] = [1, 2, 4];
+  const edgeStyleOptions: StrokeEdge[] = ["sharp", "round"];
 
   if (activeTool === "eraser" || activeTool === "grab") {
     return;
   }
-
   return (
     <>
       <section
@@ -65,8 +67,8 @@ export function ToolMenuStack({
           <div className="">
             <ItemLabel label="Stroke width" />
             <div className="flex flex-wrap gap-x-2 gap-y-2 items-center py-1">
-              {strokeWidths.map((sw, index) => (
-                <StrokeWidthIndicator
+              {lineThicknessOptions.map((sw, index) => (
+                <StrokeWidthSelector
                   key={index}
                   strokeWidth={strokeWidth}
                   strokeWidthProp={sw}
@@ -75,27 +77,28 @@ export function ToolMenuStack({
               ))}
             </div>
           </div>
-
-          <div className="">
-            <ItemLabel label="Edges" />
-            <div className="flex flex-wrap gap-x-2 gap-y-2 items-center py-1">
-              {Edge.map((sw, index) => (
-                <StrokeRoundIndicator
-                  key={index}
-                  strokeWidth={strokeWidth}
-                  strokeWidthProp={sw}
-                  onClick={() => setStrokeWidth(sw)}
-                />
-              ))}
+          {(activeTool === "rectangle" || activeTool === "diamond") && (
+            <div className="">
+              <ItemLabel label="Edges" />
+              <div className="flex flex-wrap gap-x-2 gap-y-2 items-center py-1">
+                {edgeStyleOptions.map((sw, index) => (
+                  <EdgeStyleSelector
+                    key={index}
+                    strokeEdge={strokeEdge}
+                    strokeEdgeProp={sw}
+                    onClick={() => setStrokeEdge(sw)}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
     </>
   );
 }
 
-const StrokeWidthIndicator = ({
+const StrokeWidthSelector = ({
   strokeWidth,
   strokeWidthProp,
   onClick,
@@ -136,7 +139,7 @@ const StrokeWidthIndicator = ({
   );
 };
 
-const StrokeRoundIndicator = ({
+const EdgeStyleSelector = ({
   strokeEdge,
   strokeEdgeProp,
   onClick,
@@ -163,10 +166,7 @@ const StrokeRoundIndicator = ({
         name="stroke-width"
         className="opacity-0 absolute pointer-events-none"
       />
-      <div
-        style={{ height: `${strokeEdgeProp * 2}px` }}
-        className="w-4 rounded-[10px] bg-color-on-primary-container dark:bg-icon-fill-color-d"
-      />
+      {strokeEdgeProp === "round" ? <RoundEdgeSvg /> : <SharpEdgeSvg />}
     </label>
   );
 };
@@ -178,7 +178,7 @@ function SharpEdgeSvg() {
       focusable="false"
       role="img"
       viewBox="0 0 20 20"
-      className="w-4 h-4"
+      className="w-4 h-4 text-color-on-primary-container dark:text-icon-fill-color-d"
       fill="none"
       stroke="currentColor"
       strokeLinecap="round"
@@ -198,6 +198,44 @@ function SharpEdgeSvg() {
         <path d="M13.3333 16.6667V16.6767"></path>
         <path d="M16.6667 16.6667V16.6767"></path>
       </svg>
+    </svg>
+  );
+}
+
+function RoundEdgeSvg() {
+  return (
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      role="img"
+      viewBox="0 0 24 24"
+      className="w-4 h-4 text-color-on-primary-container dark:text-icon-fill-color-d"
+      fill="none"
+      strokeWidth="2"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <g
+        strokeWidth="1.5"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M4 12v-4a4 4 0 0 1 4 -4h4"></path>
+        <line x1="16" y1="4" x2="16" y2="4.01"></line>
+        <line x1="20" y1="4" x2="20" y2="4.01"></line>
+        <line x1="20" y1="8" x2="20" y2="8.01"></line>
+        <line x1="20" y1="12" x2="20" y2="12.01"></line>
+        <line x1="4" y1="16" x2="4" y2="16.01"></line>
+        <line x1="20" y1="16" x2="20" y2="16.01"></line>
+        <line x1="4" y1="20" x2="4" y2="20.01"></line>
+        <line x1="8" y1="20" x2="8" y2="20.01"></line>
+        <line x1="12" y1="20" x2="12" y2="20.01"></line>
+        <line x1="16" y1="20" x2="16" y2="20.01"></line>
+        <line x1="20" y1="20" x2="20" y2="20.01"></line>
+      </g>
     </svg>
   );
 }

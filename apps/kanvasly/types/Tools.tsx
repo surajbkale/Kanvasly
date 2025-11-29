@@ -6,10 +6,17 @@ import {
   Eraser,
   Diamond,
   Hand,
+  MousePointer,
 } from "lucide-react";
 import { Tool } from "./canvas";
 
 export const tools: Tool[] = [
+  {
+    type: "selection",
+    icon: <MousePointer />,
+    shortcut: 0,
+    label: "Select",
+  },
   {
     type: "grab",
     icon: <Hand />,
