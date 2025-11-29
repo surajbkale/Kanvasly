@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { MainMenuStack } from "./MainMenuStack";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
   Tooltip,
   TooltipContent,
@@ -68,12 +67,9 @@ export function MobileNavbar({
   onImportCanvas,
 }: MobileNavbarProps) {
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
-  const isMediumScreen = useMediaQuery("md");
 
   const handleMenuButton = () => {
     setSidebarOpen(!sidebarOpen);
-    console.log(">>> handleMenuButton is clickd");
-    console.log(">>> sidebarOpen = ", sidebarOpen);
   };
 
   return (
@@ -103,54 +99,50 @@ export function MobileNavbar({
         </div>
       </footer>
 
-      {!isMediumScreen && (
-        <>
-          {sidebarOpen && (
-            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-              <SheetContent
-                side="bottom"
-                className="h-auto max-h-[80vh] rounded-t-[20px] px-4 py-4 overflow-auto custom-scrollbar Island"
-              >
-                <SheetHeader className="mb-5">
-                  <SheetTitle>Settings</SheetTitle>
-                </SheetHeader>
-                <MainMenuStack
-                  isOpen={sidebarOpen}
-                  onClose={() => setSidebarOpen(false)}
-                  canvasColor={canvasColor}
-                  setCanvasColor={setCanvasColor}
-                  isMobile={true}
-                  roomName={roomName}
-                  isStandalone={isStandalone}
-                  onClearCanvas={onClearCanvas}
-                  onExportCanvas={onExportCanvas}
-                  onImportCanvas={onImportCanvas}
-                />
-              </SheetContent>
-            </Sheet>
-          )}
-          <Sheet open={colorPickerOpen} onOpenChange={setColorPickerOpen}>
-            <SheetContent
-              side="bottom"
-              className="h-auto max-h-[80vh] rounded-t-[20px] px-4 py-4 overflow-auto custom-scrollbar Island"
-            >
-              <SheetHeader className="mb-5">
-                <SheetTitle>Canvas Settings</SheetTitle>
-              </SheetHeader>
-              <ToolMenuStack
-                isMobile={true}
-                activeTool={activeTool}
-                strokeFill={strokeFill}
-                setStrokeFill={setStrokeFill}
-                strokeWidth={strokeWidth}
-                setStrokeWidth={setStrokeWidth}
-                bgFill={bgFill}
-                setBgFill={setBgFill}
-              />
-            </SheetContent>
-          </Sheet>
-        </>
+      {sidebarOpen && (
+        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+          <SheetContent
+            side="bottom"
+            className="h-auto max-h-[80vh] rounded-t-[20px] px-4 py-4 overflow-auto custom-scrollbar Island"
+          >
+            <SheetHeader className="mb-5">
+              <SheetTitle>Settings</SheetTitle>
+            </SheetHeader>
+            <MainMenuStack
+              isOpen={sidebarOpen}
+              onClose={() => setSidebarOpen(false)}
+              canvasColor={canvasColor}
+              setCanvasColor={setCanvasColor}
+              isMobile={true}
+              roomName={roomName}
+              isStandalone={isStandalone}
+              onClearCanvas={onClearCanvas}
+              onExportCanvas={onExportCanvas}
+              onImportCanvas={onImportCanvas}
+            />
+          </SheetContent>
+        </Sheet>
       )}
+      <Sheet open={colorPickerOpen} onOpenChange={setColorPickerOpen}>
+        <SheetContent
+          side="bottom"
+          className="h-auto max-h-[80vh] rounded-t-[20px] px-4 py-4 overflow-auto custom-scrollbar Island"
+        >
+          <SheetHeader className="mb-5">
+            <SheetTitle>Canvas Settings</SheetTitle>
+          </SheetHeader>
+          <ToolMenuStack
+            isMobile={true}
+            activeTool={activeTool}
+            strokeFill={strokeFill}
+            setStrokeFill={setStrokeFill}
+            strokeWidth={strokeWidth}
+            setStrokeWidth={setStrokeWidth}
+            bgFill={bgFill}
+            setBgFill={setBgFill}
+          />
+        </SheetContent>
+      </Sheet>
 
       {/* <Sheet open={colorPickerOpen} onOpenChange={setColorPickerOpen}>
                 <SheetContent side="bottom" className="h-auto max-h-[80vh] rounded-t-[20px] px-6 py-6 Island">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CollaborationAd } from "./CollaborationAd";
+import { CollaborationAdDialog } from "./CollaborationAdDialog";
 
 export function CollaborationButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -43,7 +43,7 @@ export function CollaborationButton() {
           Live collaboration...
         </div>
       </button>
-      <CollaborationAd open={isOpen} onOpenChange={setIsOpen} />
+      <CollaborationAdDialog open={isOpen} onOpenChange={setIsOpen} />
     </>
   );
 }

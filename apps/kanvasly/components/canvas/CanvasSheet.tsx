@@ -19,7 +19,9 @@ import { MainMenuStack } from "../MainMenuStack";
 import { ToolMenuStack } from "../ToolMenuStack";
 import SidebarTriggerButton from "../SidebarTriggerButton";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { Toolbar } from "../toolbar";
+import Toolbar from "../Toolbar";
+import ScreenLoading from "../ScreenLoading";
+import CollaborationStart from "../CollaborationStart";
 
 export function CanvasSheet({
   roomName,
@@ -60,11 +62,25 @@ export function CanvasSheet({
     userName
   );
 
-  const isMediumScreen = useMediaQuery("md");
+  const { matches, isLoading } = useMediaQuery("md");
 
   useEffect(() => {
     setCanvasColor(theme === "light" ? canvasBgLight[0] : canvasBgDark[0]);
   }, [theme]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (canvasRef.current && game) {
+        const canvas = canvasRef.current;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        game.handleResize(window.innerWidth, window.innerHeight);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [game]);
 
   useEffect(() => {
     paramsRef.current = { roomId, roomName, userId, userName };
@@ -206,6 +222,9 @@ export function CanvasSheet({
       game.setStrokeFill(strokeFillRef.current);
       game.setBgFill(bgFillRef.current);
 
+      canvasRef.current.width = window.innerWidth;
+      canvasRef.current.height = window.innerHeight;
+
       return () => {
         game.destroy();
       };
@@ -238,15 +257,20 @@ export function CanvasSheet({
     setSidebarOpen((prev) => !prev);
   }, []);
 
+  if (isLoading) {
+    return <ScreenLoading />;
+  }
+
   return (
     <div
-      className={`h-screen overflow-hidden ${activeTool === "grab" ? (grabbing ? "cursor-grabbing" : "cursor-grab") : "cursor-crosshair"} `}
+      className={`collabydraw h-screen overflow-hidden ${activeTool === "grab" && !sidebarOpen ? (grabbing ? "cursor-grabbing" : "cursor-grab") : "cursor-crosshair"} `}
     >
-      <div className="fixed top-4 left-4 flex items-center justify-center">
-        <div className="relative">
-          {isMediumScreen && (
-            <>
+      <div className="App_Menu App_Menu_Top fixed top-4 right-4 left-4 flex justify-center items-center md:grid md:grid-cols-[1fr_auto_1fr] md:gap-8 md:items-start">
+        {matches && (
+          <div className="Main_Menu_Stack Sidebar_Trigger_Button md:grid md:gap-[calc(.25rem*6)] grid-cols-[auto] grid-flow-row grid-rows auto-rows-min justify-self-start">
+            <div className="relative">
               <SidebarTriggerButton onClick={toggleSidebar} />
+
               {sidebarOpen && (
                 <MainMenuStack
                   isOpen={sidebarOpen}
@@ -256,47 +280,43 @@ export function CanvasSheet({
                   roomName={roomName}
                 />
               )}
+            </div>
 
-              <ToolMenuStack
-                activeTool={activeTool}
-                strokeFill={strokeFill}
-                setStrokeFill={setStrokeFill}
-                strokeWidth={strokeWidth}
-                setStrokeWidth={setStrokeWidth}
-                bgFill={bgFill}
-                setBgFill={setBgFill}
-              />
-            </>
-          )}
-        </div>
+            <ToolMenuStack
+              activeTool={activeTool}
+              strokeFill={strokeFill}
+              setStrokeFill={setStrokeFill}
+              strokeWidth={strokeWidth}
+              setStrokeWidth={setStrokeWidth}
+              bgFill={bgFill}
+              setBgFill={setBgFill}
+            />
+          </div>
+        )}
+        <Toolbar selectedTool={activeTool} onToolSelect={setActiveTool} />
+        <CollaborationStart />
       </div>
 
-      <Toolbar
-        selectedTool={activeTool}
-        onToolSelect={setActiveTool}
-        canRedo={false}
-        canUndo={false}
-        onRedo={() => {}}
-        onUndo={() => {}}
-      />
+      {matches && <Scale scale={scale} setScale={setScale} />}
 
-      <Scale scale={scale} setScale={setScale} />
-      <MobileNavbar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        canvasColor={canvasColor}
-        setCanvasColor={setCanvasColor}
-        scale={scale}
-        setScale={setScale}
-        activeTool={activeTool}
-        strokeFill={strokeFill}
-        setStrokeFill={setStrokeFill}
-        strokeWidth={strokeWidth}
-        setStrokeWidth={setStrokeWidth}
-        bgFill={bgFill}
-        setBgFill={setBgFill}
-        roomName={roomName}
-      />
+      {!matches && (
+        <MobileNavbar
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          canvasColor={canvasColor}
+          setCanvasColor={setCanvasColor}
+          scale={scale}
+          setScale={setScale}
+          activeTool={activeTool}
+          strokeFill={strokeFill}
+          setStrokeFill={setStrokeFill}
+          strokeWidth={strokeWidth}
+          setStrokeWidth={setStrokeWidth}
+          bgFill={bgFill}
+          setBgFill={setBgFill}
+          roomName={roomName}
+        />
+      )}
       <canvas ref={canvasRef} />
     </div>
   );

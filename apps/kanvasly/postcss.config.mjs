@@ -98,6 +98,7 @@ const config = {
         "brand-hover": "var(--brand-hover)",
         "island-bg-color": "var(--island-bg-color)",
         "dialog-border-color": "var(--dialog-border-color)",
+        "loading-text-color": "var(--loading-text-color)",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -131,6 +132,7 @@ const config = {
         sans: "var(--font-geist-sans), system-ui, sans-serif",
         mono: "var(--font-geist-mono), monospace",
         assistant: "var(--font-assistant), sans-serif",
+        excalifont: ["Excalifont", "sans-serif"],
       },
     },
   },

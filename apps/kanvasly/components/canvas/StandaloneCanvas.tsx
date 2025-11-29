@@ -13,18 +13,20 @@ import {
 } from "@/types/canvas";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Scale } from "../Scale";
-import { Toolbar } from "../toolbar";
+import Toolbar from "../Toolbar";
 import { MobileNavbar } from "../mobile-navbar";
 import { useTheme } from "next-themes";
 import { MainMenuStack } from "../MainMenuStack";
 import { ToolMenuStack } from "../ToolMenuStack";
 import SidebarTriggerButton from "../SidebarTriggerButton";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
 import {
   HomeWelcome,
   MainMenuWelcome,
   ToolMenuWelcome,
 } from "../welcome-screen";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import ScreenLoading from "../ScreenLoading";
+import CollaborationStart from "../CollaborationStart";
 
 export function StandaloneCanvas() {
   const { theme } = useTheme();
@@ -48,13 +50,14 @@ export function StandaloneCanvas() {
   const canvasColorRef = useRef(canvasColor);
   const [isCanvasEmpty, setIsCanvasEmpty] = useState(true);
 
-  const isMediumScreen = useMediaQuery("md");
+  const { matches, isLoading } = useMediaQuery("md");
 
   useEffect(() => {
     const storedShapes = localStorage.getItem(LOCALSTORAGE_CANVAS_KEY);
     if (storedShapes) {
       const parsedShapes = JSON.parse(storedShapes);
       setIsCanvasEmpty(parsedShapes.length === 0);
+      setExistingShapes(parsedShapes);
     } else {
       setIsCanvasEmpty(true);
     }
@@ -64,9 +67,33 @@ export function StandaloneCanvas() {
     setIsCanvasEmpty(existingShapes.length === 0);
   }, [existingShapes, activeTool]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (canvasRef.current && game) {
+        const canvas = canvasRef.current;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        game.handleResize(window.innerWidth, window.innerHeight);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [game]);
+
+  useEffect(() => {
+    if (existingShapes.length > 0) {
+      localStorage.setItem(
+        LOCALSTORAGE_CANVAS_KEY,
+        JSON.stringify(existingShapes)
+      );
+    }
+  }, [existingShapes]);
+
   const clearCanvas = useCallback(() => {
     game?.clearAllShapes();
     setExistingShapes([]);
+    localStorage.removeItem(LOCALSTORAGE_CANVAS_KEY);
   }, [game]);
 
   useEffect(() => {
@@ -173,6 +200,9 @@ export function StandaloneCanvas() {
       game.setStrokeFill(strokeFillRef.current);
       game.setBgFill(bgFillRef.current);
 
+      canvasRef.current.width = window.innerWidth;
+      canvasRef.current.height = window.innerHeight;
+
       return () => {
         game.destroy();
       };
@@ -181,15 +211,8 @@ export function StandaloneCanvas() {
 
   useEffect(() => {
     if (activeTool === "grab") {
-      // const handleGrab = () => {
-      //     setGrabbing((prev) => !prev)
-      // }
-      const handleGrab = (e: MouseEvent) => {
-        if (e.button === 1 || e.button === 2) {
-          setGrabbing(true);
-        } else {
-          setGrabbing((prev) => !prev);
-        }
+      const handleGrab = () => {
+        setGrabbing((prev) => !prev);
       };
 
       document.addEventListener("mousedown", handleGrab);
@@ -241,7 +264,7 @@ export function StandaloneCanvas() {
             setExistingShapes(shapes);
 
             localStorage.setItem(
-              "standalone_canvas_shapes",
+              LOCALSTORAGE_CANVAS_KEY,
               JSON.stringify(shapes)
             );
 
@@ -262,62 +285,59 @@ export function StandaloneCanvas() {
 
   return (
     <div
-      data-is-medium-screen={isMediumScreen}
+      data-isloading={isLoading}
+      data-matches={matches}
       className={`collabydraw h-screen overflow-hidden ${activeTool === "grab" && !sidebarOpen ? (grabbing ? "cursor-grabbing" : "cursor-grab") : "cursor-crosshair"} `}
     >
-      <div className="App_Menu App_Menu_Top fixed top-4 right-4 left-4 grid grid-cols-[1fr_auto_1fr] gap-8 items-start">
-        {isMediumScreen && (
-          <div className="Main_Menu_Stack Sidebar_Trigger_Button grid gap-[calc(.25rem*6)] grid-cols-[auto] grid-flow-row grid-rows auto-rows-min justify-self-start">
-            <div className="relative">
-              <SidebarTriggerButton onClick={toggleSidebar} />
+      {!isLoading && (
+        <div className="App_Menu App_Menu_Top fixed top-4 right-4 left-4 flex justify-center items-center md:grid md:grid-cols-[1fr_auto_1fr] md:gap-8 md:items-start">
+          {matches && !isLoading && (
+            <div className="Main_Menu_Stack Sidebar_Trigger_Button md:grid md:gap-[calc(.25rem*6)] grid-cols-[auto] grid-flow-row grid-rows auto-rows-min justify-self-start">
+              <div className="relative">
+                <SidebarTriggerButton onClick={toggleSidebar} />
 
-              {sidebarOpen && (
-                <MainMenuStack
-                  isOpen={sidebarOpen}
-                  onClose={() => setSidebarOpen(false)}
-                  canvasColor={canvasColor}
-                  setCanvasColor={setCanvasColor}
-                  isStandalone={true}
-                  onClearCanvas={clearCanvas}
-                  onExportCanvas={exportCanvas}
-                  onImportCanvas={importCanvas}
-                />
-              )}
+                {sidebarOpen && (
+                  <MainMenuStack
+                    isOpen={sidebarOpen}
+                    onClose={() => setSidebarOpen(false)}
+                    canvasColor={canvasColor}
+                    setCanvasColor={setCanvasColor}
+                    isStandalone={true}
+                    onClearCanvas={clearCanvas}
+                    onExportCanvas={exportCanvas}
+                    onImportCanvas={importCanvas}
+                  />
+                )}
 
-              {activeTool === "grab" && isCanvasEmpty && <MainMenuWelcome />}
+                {activeTool === "grab" && isCanvasEmpty && <MainMenuWelcome />}
+              </div>
+
+              <ToolMenuStack
+                activeTool={activeTool}
+                strokeFill={strokeFill}
+                setStrokeFill={setStrokeFill}
+                strokeWidth={strokeWidth}
+                setStrokeWidth={setStrokeWidth}
+                bgFill={bgFill}
+                setBgFill={setBgFill}
+              />
             </div>
+          )}
 
-            <ToolMenuStack
-              activeTool={activeTool}
-              strokeFill={strokeFill}
-              setStrokeFill={setStrokeFill}
-              strokeWidth={strokeWidth}
-              setStrokeWidth={setStrokeWidth}
-              bgFill={bgFill}
-              setBgFill={setBgFill}
-            />
-          </div>
-        )}
+          <Toolbar selectedTool={activeTool} onToolSelect={setActiveTool} />
 
-        <Toolbar
-          selectedTool={activeTool}
-          onToolSelect={setActiveTool}
-          canRedo={false}
-          canUndo={false}
-          onRedo={() => {}}
-          onUndo={() => {}}
-        />
-      </div>
-
-      {activeTool === "grab" && isCanvasEmpty && (
+          <CollaborationStart />
+        </div>
+      )}
+      {activeTool === "grab" && isCanvasEmpty && !isLoading && (
         <div className="relative">
           <ToolMenuWelcome />
         </div>
       )}
 
-      {isMediumScreen && <Scale scale={scale} setScale={setScale} />}
+      {!isLoading && matches && <Scale scale={scale} setScale={setScale} />}
 
-      {!isMediumScreen && (
+      {!isLoading && !matches && (
         <MobileNavbar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
@@ -339,7 +359,9 @@ export function StandaloneCanvas() {
         />
       )}
 
-      {activeTool === "grab" && isCanvasEmpty && <HomeWelcome />}
+      {!isLoading && activeTool === "grab" && isCanvasEmpty && <HomeWelcome />}
+
+      {isLoading && <ScreenLoading />}
 
       <canvas ref={canvasRef} />
     </div>
