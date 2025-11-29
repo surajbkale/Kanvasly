@@ -32,7 +32,7 @@ interface SidebarProps {
   setCanvasColor: (color: string) => void;
 }
 
-export function MainMenuStack({
+export default function SidebarTriggerButton({
   isOpen,
   onClose,
   canvasColor,
