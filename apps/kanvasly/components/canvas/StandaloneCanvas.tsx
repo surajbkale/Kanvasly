@@ -9,6 +9,7 @@ import {
   Shape,
   StrokeEdge,
   StrokeFill,
+  StrokeStyle,
   StrokeWidth,
   ToolType,
 } from "@/types/canvas";
@@ -39,12 +40,14 @@ export function StandaloneCanvas() {
   const [strokeWidth, setStrokeWidth] = useState<StrokeWidth>(1);
   const [bgFill, setBgFill] = useState<BgFill>("#00000000");
   const [strokeEdge, setStrokeEdge] = useState<StrokeEdge>("round");
+  const [strokeStyle, setStrokeStyle] = useState<StrokeStyle>("solid");
   const [grabbing, setGrabbing] = useState(false);
   const [existingShapes, setExistingShapes] = useState<Shape[]>([]);
   const activeToolRef = useRef(activeTool);
   const strokeFillRef = useRef(strokeFill);
   const strokeWidthRef = useRef(strokeWidth);
   const strokeEdgeRef = useRef(strokeEdge);
+  const strokeStyleRef = useRef(strokeStyle);
   const bgFillRef = useRef(bgFill);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [canvasColor, setCanvasColor] = useState<string>(
@@ -110,12 +113,18 @@ export function StandaloneCanvas() {
     game?.setBgFill(bgFill);
     game?.setCanvasBgColor(canvasColor);
     game?.setStrokeEdge(strokeEdge);
+    game?.setStrokeStyle(strokeStyle);
   });
 
   useEffect(() => {
     strokeEdgeRef.current = strokeEdge;
     game?.setStrokeEdge(strokeEdge);
   }, [strokeEdge, game]);
+
+  useEffect(() => {
+    strokeStyleRef.current = strokeStyle;
+    game?.setStrokeStyle(strokeStyle);
+  }, [strokeStyle, game]);
 
   useEffect(() => {
     activeToolRef.current = activeTool;
@@ -212,6 +221,7 @@ export function StandaloneCanvas() {
       game.setStrokeFill(strokeFillRef.current);
       game.setBgFill(bgFillRef.current);
       game.setStrokeEdge(strokeEdgeRef.current);
+      game.setStrokeStyle(strokeStyleRef.current);
 
       canvasRef.current.width = window.innerWidth;
       canvasRef.current.height = window.innerHeight;
@@ -243,12 +253,6 @@ export function StandaloneCanvas() {
       setScale(game.outputScale);
     }
   }, [game?.outputScale]);
-
-  useEffect(() => {
-    if (sidebarOpen && activeTool !== "grab") {
-      setSidebarOpen(false);
-    }
-  }, [activeTool, sidebarOpen]);
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((prev) => !prev);
@@ -341,6 +345,8 @@ export function StandaloneCanvas() {
                 setBgFill={setBgFill}
                 strokeEdge={strokeEdge}
                 setStrokeEdge={setStrokeEdge}
+                strokeStyle={strokeStyle}
+                setStrokeStyle={setStrokeStyle}
               />
             </div>
           )}
