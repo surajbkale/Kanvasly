@@ -58,35 +58,6 @@ export function useWebSocket(
         try {
           const data: WebSocketMessage = JSON.parse(event.data);
           switch (data.type) {
-            case WS_DATA_TYPE.CHAT:
-              if (data.message && data.timestamp) {
-                setMessages((prev) => [
-                  ...prev,
-                  {
-                    userId: data.userId!,
-                    userName: data.userName!,
-                    content: data.message!,
-                    timestamp: data.timestamp!,
-                  },
-                ]);
-              }
-              break;
-
-            case WS_DATA_TYPE.DRAW:
-            case WS_DATA_TYPE.ERASER:
-              if (data.message) {
-                setMessages((prev) => [
-                  ...prev,
-                  {
-                    userId: data.userId!,
-                    userName: data.userName!,
-                    content: data.message!,
-                    timestamp: data.timestamp || new Date().toISOString(),
-                  },
-                ]);
-              }
-              break;
-
             case WS_DATA_TYPE.USER_JOINED:
               setParticipants((prev) => {
                 const exists = prev.some((p) => p.userId === data.userId);
@@ -107,6 +78,23 @@ export function useWebSocket(
               setParticipants((prev) =>
                 prev.filter((user) => user.userId !== data.userId)
               );
+              break;
+
+            case WS_DATA_TYPE.CHAT:
+            case WS_DATA_TYPE.DRAW:
+            case WS_DATA_TYPE.ERASER:
+            case WS_DATA_TYPE.UPDATE:
+              if (data.message && data.timestamp) {
+                setMessages((prev) => [
+                  ...prev,
+                  {
+                    userId: data.userId!,
+                    userName: data.userName!,
+                    content: data.message!,
+                    timestamp: data.timestamp || new Date().toISOString(),
+                  },
+                ]);
+              }
               break;
           }
         } catch (err) {

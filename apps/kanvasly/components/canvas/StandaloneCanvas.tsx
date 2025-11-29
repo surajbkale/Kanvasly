@@ -306,6 +306,18 @@ export function StandaloneCanvas() {
     input.click();
   }, [game]);
 
+  const handleToolSelect = (tool: ToolType) => {
+    setActiveTool(tool);
+    game?.setTool(tool);
+    if (tool !== "selection") {
+      game?.updateShapes(existingShapes);
+    }
+  };
+
+  useEffect(() => {
+    //
+  }, []);
+
   return (
     <div
       data-isloading={isLoading}
@@ -351,7 +363,7 @@ export function StandaloneCanvas() {
             </div>
           )}
 
-          <Toolbar selectedTool={activeTool} onToolSelect={setActiveTool} />
+          <Toolbar selectedTool={activeTool} onToolSelect={handleToolSelect} />
 
           <CollaborationStart />
         </div>
