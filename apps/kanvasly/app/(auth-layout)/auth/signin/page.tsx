@@ -11,7 +11,7 @@ import Link from "next/link";
 
 export default function SignInPage() {
   return (
-    <Card className="border-0 shadow-none lg:shadow-2xl rounded-3xl mt-10 mx-auto px-6 py-8 lg:mt-0 lg:p-16 relative z-10 dark:!bg-surface-loww max-w-[480px] bg-yellow-light">
+    <Card className="border-0 shadow-none lg:shadow-2xl rounded-3xl m-0 mx-auto px-6 py-8 lg:p-16 relative z-10 max-w-[480px] bg-yellow-light">
       <CardHeader className="p-0">
         <CardTitle className="text-2xl font-bold text-center">
           Hi there!
@@ -37,6 +37,14 @@ export default function SignInPage() {
             href="/auth/signup"
           >
             Don&apos;t have an account? Sign Up
+          </Link>
+        </div>
+        <div className="flex w-full flex-col items-center gap-3">
+          <Link
+            className="text-color-primary text-sm hover:underline hover:underline-offset-4 transition-all duration-200 ease-in-out"
+            href="/"
+          >
+            Back to Home
           </Link>
         </div>
       </CardFooter>

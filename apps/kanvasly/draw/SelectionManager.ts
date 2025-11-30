@@ -1,8 +1,5 @@
-// import { Tool } from "./draw";
-
 import { Shape } from "@/types/canvas";
 
-// type Tool = Exclude<Shape, { type: "pen" }>;
 type Tool = Shape;
 
 export interface ResizeHandle {
@@ -32,14 +29,13 @@ export class SelectionManager {
   }
 
   private resetCursor() {
-    this.canvas.style.cursor = "auto";
+    this.canvas.style.cursor = "";
   }
 
   private onUpdateCallback: () => void = () => {};
   setOnUpdate(callback: () => void) {
     this.onUpdateCallback = callback;
   }
-  // Call this after any modification
   private triggerUpdate() {
     this.onUpdateCallback();
   }
@@ -110,28 +106,22 @@ export class SelectionManager {
         case "diamond":
           bounds.width = shape.width;
           bounds.height = shape.height;
-          // bounds.x = shape.x - shape.width / 2 - 10;
-          // bounds.y = shape.y - shape.height / 2 - 10;
-          bounds.x = shape.x;
-          bounds.y = shape.y;
+          bounds.x = shape.x - shape.width / 2;
+          bounds.y = shape.y - shape.height / 2;
           break;
 
         case "line":
-          // case "arrow":
-          bounds.width = Math.abs(shape.x - shape.toX) + 20;
-          bounds.height = Math.abs(shape.y - shape.toY) + 20;
-          bounds.x = Math.min(shape.x, shape.toX) - 10;
-          bounds.y = Math.min(shape.y, shape.toY) - 10;
-          break;
+        case "arrow":
+          const minX = Math.min(shape.x, shape.toX);
+          const minY = Math.min(shape.y, shape.toY);
+          const maxX = Math.max(shape.x, shape.toX);
+          const maxY = Math.max(shape.y, shape.toY);
 
-        // case "text":
-        //     this.ctx.font = '24px Comic Sans MS, cursive';
-        //     const metrics = this.ctx.measureText(shape.text || "");
-        //     bounds.x = shape.x-10
-        //     bounds.y = shape.y-10
-        //     bounds.width = metrics.width+20;
-        //     bounds.height = 48;
-        //     break;
+          bounds.x = minX - shape.strokeWidth - 20;
+          bounds.y = minY - shape.strokeWidth - 20;
+          bounds.width = maxX - minX + shape.strokeWidth * 2 + 40;
+          bounds.height = maxY - minY + shape.strokeWidth * 2 + 40;
+          break;
       }
 
       return bounds;
@@ -239,13 +229,14 @@ export class SelectionManager {
     );
   }
 
-  // In startDragging()
   startDragging(x: number, y: number) {
     if (this.selectedShape) {
       this.isDragging = true;
 
-      // Handle different shape types properly
-      if (this.selectedShape.type === "line") {
+      if (
+        this.selectedShape.type === "line" ||
+        this.selectedShape.type === "arrow"
+      ) {
         this.dragOffset = {
           x: x - this.selectedShape.x,
           y: y - this.selectedShape.y,
@@ -259,6 +250,11 @@ export class SelectionManager {
           x: x - this.selectedShape.x,
           y: y - this.selectedShape.y,
         };
+      } else if (this.selectedShape.type === "diamond") {
+        this.dragOffset = {
+          x: x - this.selectedShape.x,
+          y: y - this.selectedShape.y,
+        };
       } else if (this.selectedShape.type !== "pen") {
         this.dragOffset = {
           x: x - this.selectedShape.x,
@@ -268,34 +264,6 @@ export class SelectionManager {
       this.setCursor("move");
     }
   }
-
-  // startDragging(x: number, y: number) {
-  //   if (this.selectedShape) {
-  //     this.isDragging = true;
-  //     this.dragOffset = {
-  //       x: x - this.selectedShape.x,
-  //       y: y - this.selectedShape.y,
-  //     };
-
-  //     // if (this.selectedShape.type === "line" || this.selectedShape.type === "arrow") {
-  //     if (this.selectedShape.type === "line") {
-  //       this.dragEndOffset = {
-  //         x: x - this.selectedShape.toX,
-  //         y: y - this.selectedShape.toY,
-  //       };
-  //     } else if (this.selectedShape.type === "ellipse") {
-  //       this.selectedShape.centerX = x - this.dragOffset.x;
-  //       this.selectedShape.centerY = y - this.dragOffset.y;
-  //     } else if (this.selectedShape.type === "diamond") {
-  //       this.selectedShape.centerX = x - this.dragOffset.x;
-  //       this.selectedShape.centerY = y - this.dragOffset.y;
-  //     } else if (this.selectedShape.type === "rectangle") {
-  //       this.selectedShape.x = x - this.dragOffset.x;
-  //       this.selectedShape.y = y - this.dragOffset.y;
-  //     }
-  //     this.setCursor("move");
-  //   }
-  // }
 
   startResizing(x: number, y: number) {
     if (this.selectedShape) {
@@ -319,6 +287,7 @@ export class SelectionManager {
 
       switch (this.selectedShape.type) {
         case "line":
+        case "arrow":
           this.selectedShape.x = dx;
           this.selectedShape.y = dy;
           this.selectedShape.toX = x - this.dragEndOffset.x;
@@ -389,11 +358,16 @@ export class SelectionManager {
         this.selectedShape.radX = newBounds.width / 2;
         this.selectedShape.radY = newBounds.height / 2;
       } else if (this.selectedShape.type === "diamond") {
-        this.selectedShape.width =
-          Math.max(Math.abs(newBounds.width), Math.abs(newBounds.height)) / 2;
-      } else if (this.selectedShape.type === "line") {
-        // || this.selectedShape.type === "arrow") {
-        // Update line/arrow endpoints based on the resize handle
+        const centerX = newBounds.x + newBounds.width / 2;
+        const centerY = newBounds.y + newBounds.height / 2;
+        this.selectedShape.x = centerX;
+        this.selectedShape.y = centerY;
+        this.selectedShape.width = newBounds.width;
+        this.selectedShape.height = newBounds.height;
+      } else if (
+        this.selectedShape.type === "line" ||
+        this.selectedShape.type === "arrow"
+      ) {
         switch (this.activeResizeHandle.position) {
           case "top-left":
             this.selectedShape.x = x;

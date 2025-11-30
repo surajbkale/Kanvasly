@@ -72,6 +72,7 @@ export function ToolMenuStack({
             setBgFill={setBgFill}
             strokeFill={strokeFill}
             setStrokeFill={setStrokeFill}
+            activeTool={activeTool}
           />
 
           <div className="">

@@ -6,7 +6,7 @@ import { useState, useEffect, SetStateAction, Dispatch } from "react";
 import { Check, Edit } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { BgFill, StrokeFill } from "@/types/canvas";
+import { BgFill, StrokeFill, ToolType } from "@/types/canvas";
 import { Separator } from "./ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import ItemLabel from "./ItemLabel";
@@ -17,6 +17,7 @@ interface ColorBoardProps {
   setStrokeFill: React.Dispatch<React.SetStateAction<StrokeFill>>;
   bgFill: BgFill;
   setBgFill: React.Dispatch<React.SetStateAction<BgFill>>;
+  activeTool?: ToolType;
 }
 
 export function ColorBoard({
@@ -25,6 +26,7 @@ export function ColorBoard({
   setStrokeFill,
   bgFill,
   setBgFill,
+  activeTool,
 }: ColorBoardProps) {
   const strokeFills: StrokeFill[] = [
     "#1971c2",
@@ -70,29 +72,34 @@ export function ColorBoard({
               </div>
             </div>
           </div>
-
-          <div className="">
-            <ItemLabel label="Background" />
-            <div className="relative">
-              <div className="color-picker-container grid grid-cols-[1fr_1.5rem_2.5rem] md:grid-cols-[1fr_20px_1.625rem] max-w-[17rem] md:max-w-80 py-1 px-0 items-center">
-                <div className="flex items-center justify-between">
-                  {bgFills.map((color) => (
-                    <ColorPickerButton
-                      key={color}
-                      color={color}
-                      isSelected={color === bgFill}
-                      onClick={() => setBgFill(color)}
-                    />
-                  ))}
+          {!(
+            activeTool === "arrow" ||
+            activeTool === "line" ||
+            activeTool === "pen"
+          ) && (
+            <div className="">
+              <ItemLabel label="Background" />
+              <div className="relative">
+                <div className="color-picker-container grid grid-cols-[1fr_1.5rem_2.5rem] md:grid-cols-[1fr_20px_1.625rem] max-w-[17rem] md:max-w-80 py-1 px-0 items-center">
+                  <div className="flex items-center justify-between">
+                    {bgFills.map((color) => (
+                      <ColorPickerButton
+                        key={color}
+                        color={color}
+                        isSelected={color === bgFill}
+                        onClick={() => setBgFill(color)}
+                      />
+                    ))}
+                  </div>
+                  <Separator
+                    orientation="vertical"
+                    className="bg-default-border-color dark:bg-w-button-hover-bg h-4 mx-auto"
+                  />
+                  <ColorPopover selectedColor={bgFill} setColor={setBgFill} />
                 </div>
-                <Separator
-                  orientation="vertical"
-                  className="bg-default-border-color dark:bg-w-button-hover-bg h-4 mx-auto"
-                />
-                <ColorPopover selectedColor={bgFill} setColor={setBgFill} />
               </div>
             </div>
-          </div>
+          )}
         </>
       )}
     </div>

@@ -18,6 +18,7 @@ import {
   DownloadIcon,
   Upload,
   Linkedin,
+  Share,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -26,9 +27,12 @@ import { ConfirmDialog } from "./confirm-dialog";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { clearAllChats } from "@/actions/chat";
-import { signOut } from "next-auth/react";
-import { redirect } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
+import { redirect, usePathname } from "next/navigation";
 import Link from "next/link";
+import { CollaborationAdDialog } from "./CollaborationAdDialog";
+import { RoomSharingDialog } from "./RoomSharingDialog";
+import CollaborationStartdDialog from "./CollaborationStartdDialog";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -57,8 +61,11 @@ export function MainMenuStack({
 }: SidebarProps) {
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { data: session } = useSession();
 
-  console.log("isOpen = ", isOpen);
+  const pathname = usePathname();
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const decodedPathname = decodeURIComponent(pathname);
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
@@ -145,11 +152,21 @@ export function MainMenuStack({
                     onClick={onImportCanvas}
                   />
                   <SidebarItem
-                    icon={UserPlus}
-                    onClick={() => redirect("/auth/signup")}
-                    label="Sign up"
-                    className="text-color-promo hover:text-color-promo font-bold"
+                    icon={Share}
+                    label="Live collaboration"
+                    onClick={() => setIsShareOpen(true)}
                   />
+                  {session?.user && session?.user.id ? (
+                    <CollaborationStartdDialog
+                      open={isShareOpen}
+                      onOpenChange={setIsShareOpen}
+                    />
+                  ) : (
+                    <CollaborationAdDialog
+                      open={isShareOpen}
+                      onOpenChange={setIsShareOpen}
+                    />
+                  )}
                 </>
               ) : (
                 <>
@@ -170,16 +187,29 @@ export function MainMenuStack({
                     label="Reset the canvas"
                     onClick={() => setClearDialogOpen(true)}
                   />
-                  <SidebarItem
-                    icon={LogOut}
-                    label="Log Out"
-                    onClick={() => signOut({ callbackUrl: "/" })}
+                  <RoomSharingDialog
+                    open={isShareOpen}
+                    onOpenChange={setIsShareOpen}
+                    link={`${process.env.NODE_ENV !== "production" ? "http://localhost:3000" : "https://collabydraw.com"}/${decodedPathname}`}
                   />
                 </>
               )}
+              {session?.user && session?.user.id ? (
+                <SidebarItem
+                  icon={LogOut}
+                  label="Log Out"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                />
+              ) : (
+                <SidebarItem
+                  icon={UserPlus}
+                  onClick={() => redirect("/auth/signup")}
+                  label="Sign up"
+                  className="text-color-promo hover:text-color-promo font-bold"
+                />
+              )}
 
               <Separator className="my-4 dark:bg-default-border-color-dark" />
-
               <SidebarLinkItem
                 icon={Github}
                 label="GitHub"
@@ -270,8 +300,7 @@ function SidebarItem({
         className
       )}
       onClick={onClick}
-      target="_blank"
-      rel="noopener noreferrer"
+      title={label}
     >
       <Icon className="h-4 w-4" />
       <span>{label}</span>
@@ -307,6 +336,9 @@ function SidebarLinkItem({
         className
       )}
       href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={label}
     >
       <Icon className="h-4 w-4" />
       <span>{label}</span>
