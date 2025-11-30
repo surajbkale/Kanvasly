@@ -55,7 +55,7 @@ export default function CollaborationStartBtn({
         </div>
       </div>
       <Button
-        type="button"
+        type="butt yu65tr4e3qson"
         onClick={() => setIsOpen(true)}
         className={cn(
           "excalidraw-button collab-button relative w-auto py-3 px-4 rounded-md text-[.875rem] font-semibold shadow-none active:scale-[.98]",

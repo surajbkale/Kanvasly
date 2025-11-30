@@ -50,17 +50,7 @@ export type User = Prisma.UserModel
  */
 export type Room = Prisma.RoomModel
 /**
- * Model Chat
+ * Model Shape
  * 
  */
-export type Chat = Prisma.ChatModel
-/**
- * Model Account
- * 
- */
-export type Account = Prisma.AccountModel
-/**
- * Model Session
- * 
- */
-export type Session = Prisma.SessionModel
+export type Shape = Prisma.ShapeModel
