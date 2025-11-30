@@ -155,6 +155,9 @@ const config = {
         assistant: "var(--font-assistant), sans-serif",
         excalifont: ["Excalifont", "sans-serif"],
       },
+      filter: {
+        "canvas-theme-filter": "var(--theme-filter)",
+      },
     },
   },
   plugins: [

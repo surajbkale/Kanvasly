@@ -111,11 +111,9 @@ function ColorPickerButton({
   return (
     <button
       className={cn(
-        "w-[1.35rem] h-[1.35rem] rounded-md border ring-0 transition-all hover:scale-110 focus:outline-none color-picker__button",
+        "color-picker__button w-[1.35rem] h-[1.35rem] rounded-md border ring-0 transition-all hover:scale-110 focus:outline-none",
         isSelected && "active",
-        color === "#00000000"
-          ? "bg-[url('/bg-transparent-checkerboard.png')] dark:bg-[url('/checkerboard-dark.png')] bg-cover bg-center"
-          : ""
+        color === "#00000000" ? "is-transparent" : ""
       )}
       style={color !== "#00000000" ? { backgroundColor: color } : {}}
       onClick={onClick}
@@ -168,7 +166,10 @@ function ColorPopover<T extends string>({
     <Popover>
       <PopoverTrigger asChild>
         <button
-          className="w-[1.625rem] h-[1.625rem] rounded-md border transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring ring-2 ring-ring ring-offset-2 ring-offset-background"
+          className={cn(
+            "color-picker__button active-color w-[1.625rem] h-[1.625rem] rounded-md border transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring ring-2 ring-ring ring-offset-2 ring-offset-background",
+            selectedColor === "#00000000" ? "is-transparent" : ""
+          )}
           style={{ backgroundColor: selectedColor }}
           aria-label={`Selected color ${selectedColor}`}
         >

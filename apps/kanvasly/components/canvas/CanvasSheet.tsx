@@ -4,11 +4,11 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { Game } from "@/draw/Game";
 import {
   BgFill,
-  canvasBgDark,
   canvasBgLight,
   Shape,
   StrokeEdge,
   StrokeFill,
+  StrokeStyle,
   StrokeWidth,
   ToolType,
 } from "@/types/canvas";
@@ -23,6 +23,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import Toolbar from "../Toolbar";
 import ScreenLoading from "../ScreenLoading";
 import CollaborationStart from "../CollaborationStartBtn";
+import { cn } from "@/lib/utils";
 
 export function CanvasSheet({
   roomName,
@@ -44,6 +45,7 @@ export function CanvasSheet({
   const [strokeWidth, setStrokeWidth] = useState<StrokeWidth>(1);
   const [bgFill, setBgFill] = useState<BgFill>("#00000000");
   const [strokeEdge, setStrokeEdge] = useState<StrokeEdge>("round");
+  const [strokeStyle, setStrokeStyle] = useState<StrokeStyle>("solid");
   const [grabbing, setGrabbing] = useState(false);
   const [existingShapes, setExistingShapes] = useState<Shape[]>([]);
   const paramsRef = useRef({ roomId, roomName, userId, userName });
@@ -51,11 +53,10 @@ export function CanvasSheet({
   const strokeFillRef = useRef(strokeFill);
   const strokeWidthRef = useRef(strokeWidth);
   const strokeEdgeRef = useRef(strokeEdge);
+  const strokeStyleRef = useRef(strokeStyle);
   const bgFillRef = useRef(bgFill);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [canvasColor, setCanvasColor] = useState<string>(
-    theme === "light" ? canvasBgLight[0] : canvasBgDark[0]
-  );
+  const [canvasColor, setCanvasColor] = useState<string>(canvasBgLight[0]);
   const canvasColorRef = useRef(canvasColor);
 
   const { isConnected, messages, sendMessage } = useWebSocket(
@@ -68,7 +69,7 @@ export function CanvasSheet({
   const { matches, isLoading } = useMediaQuery("md");
 
   useEffect(() => {
-    setCanvasColor(theme === "light" ? canvasBgLight[0] : canvasBgDark[0]);
+    setCanvasColor(canvasBgLight[0]);
   }, [theme]);
 
   useEffect(() => {
@@ -129,6 +130,11 @@ export function CanvasSheet({
     strokeEdgeRef.current = strokeEdge;
     game?.setStrokeEdge(strokeEdge);
   }, [strokeEdge, game]);
+
+  useEffect(() => {
+    strokeStyleRef.current = strokeStyle;
+    game?.setStrokeStyle(strokeStyle);
+  }, [strokeStyle, game]);
 
   useEffect(() => {
     activeToolRef.current = activeTool;
@@ -274,7 +280,7 @@ export function CanvasSheet({
     <div
       className={`collabydraw h-screen overflow-hidden ${activeTool === "grab" && !sidebarOpen ? (grabbing ? "cursor-grabbing" : "cursor-grab") : "cursor-crosshair"} `}
     >
-      <div className="App_Menu App_Menu_Top fixed top-4 right-4 left-4 flex justify-center items-center md:grid md:grid-cols-[1fr_auto_1fr] md:gap-8 md:items-start">
+      <div className="App_Menu App_Menu_Top fixed z-[4] top-4 right-4 left-4 flex justify-center items-center md:grid md:grid-cols-[1fr_auto_1fr] md:gap-8 md:items-start">
         {matches && (
           <div className="Main_Menu_Stack Sidebar_Trigger_Button md:grid md:gap-[calc(.25rem*6)] grid-cols-[auto] grid-flow-row grid-rows auto-rows-min justify-self-start">
             <div className="relative">
@@ -301,6 +307,8 @@ export function CanvasSheet({
               setBgFill={setBgFill}
               strokeEdge={strokeEdge}
               setStrokeEdge={setStrokeEdge}
+              strokeStyle={strokeStyle}
+              setStrokeStyle={setStrokeStyle}
             />
           </div>
         )}
@@ -328,7 +336,13 @@ export function CanvasSheet({
           roomName={roomName}
         />
       )}
-      <canvas ref={canvasRef} />
+      <canvas
+        className={cn(
+          "collabydraw collabydraw-canvas",
+          theme === "dark" ? "collabydraw-canvas-dark" : ""
+        )}
+        ref={canvasRef}
+      />
     </div>
   );
 }
