@@ -33,6 +33,7 @@ export default async function CanvasPage({
       roomName={room.slug}
       userId={user.id}
       userName={user.name || "User-" + user.id}
+      token={session.accessToken}
     />
   );
 }

@@ -30,11 +30,13 @@ export function CanvasSheet({
   roomId,
   userId,
   userName,
+  token,
 }: {
   roomName: string;
   roomId: string;
   userId: string;
   userName: string;
+  token: string;
 }) {
   const { theme } = useTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -59,11 +61,12 @@ export function CanvasSheet({
   const [canvasColor, setCanvasColor] = useState<string>(canvasBgLight[0]);
   const canvasColorRef = useRef(canvasColor);
 
-  const { isConnected, messages, sendMessage, participants } = useWebSocket(
+  const { isConnected, messages, participants, sendDrawingData } = useWebSocket(
     roomId,
     roomName,
     userId,
-    userName
+    userName,
+    token
   );
 
   const { matches, isLoading } = useMediaQuery("md");
@@ -95,7 +98,7 @@ export function CanvasSheet({
       try {
         messages.forEach((message) => {
           try {
-            const data = JSON.parse(message.content);
+            const data = JSON.parse(message.message);
             console.log("ws msg data = ", data);
             if (data.type === "draw") {
               const shape = JSON.parse(data.data).shape;
@@ -117,14 +120,6 @@ export function CanvasSheet({
       }
     }
   }, [messages]);
-
-  useEffect(() => {
-    try {
-      console.log("participants = ", participants);
-    } catch (e) {
-      console.error("Error processing messages:", e);
-    }
-  }, [participants]);
 
   useEffect(() => {
     game?.setTool(activeTool);
@@ -219,13 +214,28 @@ export function CanvasSheet({
   }, [setActiveTool]);
 
   const handleSendDrawing = useCallback(
-    (msgData: string) => {
+    (drawingData: string) => {
       if (isConnected) {
-        sendMessage(msgData);
+        sendDrawingData(JSON.stringify(drawingData));
       }
     },
-    [isConnected, sendMessage]
+    [isConnected, sendDrawingData]
   );
+
+  // const handleEraserComplete = useCallback((eraserData: string) => {
+  //     if (isConnected) {
+  //         sendEraserData(JSON.stringify(eraserData));
+
+  //     }
+  // }, [isConnected, sendEraserData]);
+
+  useEffect(() => {
+    try {
+      console.log("participants = ", participants);
+    } catch (e) {
+      console.error("Error processing messages:", e);
+    }
+  }, [participants]);
 
   useEffect(() => {
     if (canvasRef.current) {
