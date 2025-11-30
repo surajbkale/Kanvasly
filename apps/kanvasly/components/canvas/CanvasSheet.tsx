@@ -59,7 +59,7 @@ export function CanvasSheet({
   const [canvasColor, setCanvasColor] = useState<string>(canvasBgLight[0]);
   const canvasColorRef = useRef(canvasColor);
 
-  const { isConnected, messages, sendMessage } = useWebSocket(
+  const { isConnected, messages, sendMessage, participants } = useWebSocket(
     roomId,
     roomName,
     userId,
@@ -96,6 +96,7 @@ export function CanvasSheet({
         messages.forEach((message) => {
           try {
             const data = JSON.parse(message.content);
+            console.log("ws msg data = ", data);
             if (data.type === "draw") {
               const shape = JSON.parse(data.data).shape;
               setExistingShapes((prevShapes) => [...prevShapes, shape]);
@@ -116,6 +117,14 @@ export function CanvasSheet({
       }
     }
   }, [messages]);
+
+  useEffect(() => {
+    try {
+      console.log("participants = ", participants);
+    } catch (e) {
+      console.error("Error processing messages:", e);
+    }
+  }, [participants]);
 
   useEffect(() => {
     game?.setTool(activeTool);
@@ -322,7 +331,12 @@ export function CanvasSheet({
           </div>
         )}
         <Toolbar selectedTool={activeTool} onToolSelect={setActiveTool} />
-        {matches && <CollaborationStart slug={roomName} />}
+        {matches && (
+          <CollaborationStart
+            participantsCount={participants.length}
+            slug={roomName}
+          />
+        )}
       </div>
 
       {matches && <Scale scale={scale} setScale={setScale} />}
@@ -342,6 +356,10 @@ export function CanvasSheet({
           setStrokeWidth={setStrokeWidth}
           bgFill={bgFill}
           setBgFill={setBgFill}
+          strokeEdge={strokeEdge}
+          setStrokeEdge={setStrokeEdge}
+          strokeStyle={strokeStyle}
+          setStrokeStyle={setStrokeStyle}
           roomName={roomName}
         />
       )}

@@ -57,24 +57,32 @@ export function useWebSocket(
       const handleMessage = (event: MessageEvent) => {
         try {
           const data: WebSocketMessage = JSON.parse(event.data);
+          if (data.participants) {
+            setParticipants(data.participants);
+          }
           switch (data.type) {
             case WS_DATA_TYPE.USER_JOINED:
-              setParticipants((prev) => {
-                const exists = prev.some((p) => p.userId === data.userId);
-                if (!exists && data.userId && data.userName) {
-                  return [
-                    ...prev,
-                    {
-                      userId: data.userId,
-                      userName: data.userName,
-                    },
-                  ];
-                }
-                return prev;
-              });
+              if (!data.participants && data.userId && data.userName) {
+                setParticipants((prev) => {
+                  const exists = prev.some((p) => p.userId === data.userId);
+                  if (!exists && data.userId && data.userName) {
+                    return [
+                      ...prev,
+                      {
+                        userId: data.userId,
+                        userName: data.userName,
+                      },
+                    ];
+                  }
+                  return prev;
+                });
+              }
               break;
 
             case WS_DATA_TYPE.USER_LEFT:
+              // if (!data.participants) {
+              //     setParticipants(prev => prev.filter(user => user.userId !== data.userId));
+              // }
               setParticipants((prev) =>
                 prev.filter((user) => user.userId !== data.userId)
               );
