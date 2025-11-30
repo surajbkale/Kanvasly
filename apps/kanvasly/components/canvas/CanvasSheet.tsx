@@ -332,10 +332,7 @@ export function CanvasSheet({
         )}
         <Toolbar selectedTool={activeTool} onToolSelect={setActiveTool} />
         {matches && (
-          <CollaborationStart
-            participantsCount={participants.length}
-            slug={roomName}
-          />
+          <CollaborationStart participants={participants} slug={roomName} />
         )}
       </div>
 
