@@ -31,7 +31,7 @@ export function MainMenuWelcome() {
           strokeLinecap="round"
         ></path>
       </svg>
-      <div className="welcome-screen-decor-hint__label">
+      <div className="welcome-screen-decor-hint__label font-excalifont">
         Export, preferences, languages, ...
       </div>
     </div>
@@ -40,7 +40,7 @@ export function MainMenuWelcome() {
 
 export function ToolMenuWelcome() {
   return (
-    <div className="excalifont welcome-screen-decor welcome-screen-decor-hint welcome-screen-decor-hint--toolbar">
+    <div className="excalifont z-[4] welcome-screen-decor welcome-screen-decor-hint welcome-screen-decor-hint--toolbar">
       <div className="welcome-screen-decor-hint__label">
         Pick a tool &amp; Start drawing!
       </div>
@@ -78,7 +78,7 @@ export function ToolMenuWelcome() {
 export function HomeWelcome() {
   return (
     <>
-      <div className="welcome-screen-center">
+      <div className="welcome-screen-center z-[4]">
         <div className="welcome-screen-center__logo excalifont welcome-screen-decor">
           <div className="ExcalidrawLogo is-small">
             <svg
@@ -92,10 +92,12 @@ export function HomeWelcome() {
                 fill="currentColor"
               ></path>
             </svg>
-            <h1 className="brand-title ExcalidrawLogo-text">CollabyDraw</h1>
+            <h1 className="brand-title ExcalidrawLogo-text font-excalifont">
+              CollabyDraw
+            </h1>
           </div>
         </div>
-        <div className="welcome-screen-center__heading welcome-screen-decor excalifont">
+        <div className="welcome-screen-center__heading welcome-screen-decor font-excalifont">
           All your data is saved locally in your browser.
         </div>
         <div className="welcome-screen-menu">
