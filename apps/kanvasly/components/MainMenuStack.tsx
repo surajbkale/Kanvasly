@@ -44,6 +44,7 @@ interface SidebarProps {
   onClearCanvas?: () => void;
   onExportCanvas?: () => void;
   onImportCanvas?: () => void;
+  onCloseRoom?: () => void;
 }
 
 export function MainMenuStack({
@@ -53,10 +54,11 @@ export function MainMenuStack({
   setCanvasColor,
   isMobile,
   roomName,
-  isStandalone = false,
+  isStandalone,
   onClearCanvas,
   onExportCanvas,
   onImportCanvas,
+  onCloseRoom,
 }: SidebarProps) {
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
   const { theme, setTheme } = useTheme();
@@ -71,6 +73,8 @@ export function MainMenuStack({
       const target = e.target as HTMLElement;
       if (
         isOpen &&
+        !clearDialogOpen &&
+        !isShareOpen &&
         !target.closest("[data-sidebar]") &&
         !target.closest("[data-sidebar-trigger]")
       ) {
@@ -80,7 +84,7 @@ export function MainMenuStack({
 
     document.addEventListener("mouseup", handleOutsideClick);
     return () => document.removeEventListener("mouseup", handleOutsideClick);
-  }, [isOpen, onClose]);
+  }, [clearDialogOpen, isOpen, isShareOpen, onClose]);
 
   useEffect(() => {
     if (isOpen && window.innerWidth < 768) {
@@ -176,6 +180,7 @@ export function MainMenuStack({
                     Room Name: <span>{roomName}</span>
                   </Button>
                   <RoomSharingDialog
+                    onCloseRoom={onCloseRoom}
                     open={isShareOpen}
                     onOpenChange={setIsShareOpen}
                     link={`${process.env.NODE_ENV !== "production" ? "http://localhost:3000" : "https://collabydraw.com"}/${decodedPathname}`}

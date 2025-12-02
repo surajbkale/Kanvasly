@@ -31,6 +31,7 @@ import CollaborationStart from "../CollaborationStartBtn";
 import { cn } from "@/lib/utils";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { WS_DATA_TYPE } from "@repo/common/types";
+import { useRouter } from "next/navigation";
 
 export default function CanvasSheet({
   roomName,
@@ -49,6 +50,7 @@ export default function CanvasSheet({
   const [canvasColor, setCanvasColor] = useState<string>(canvasBgLight[0]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const paramsRef = useRef({ roomId, roomName, userId, userName, token });
+  const router = useRouter();
 
   const [canvasState, setCanvasState] = useState({
     game: null as Game | null,
@@ -269,6 +271,18 @@ export default function CanvasSheet({
                   canvasColor={canvasColor}
                   setCanvasColor={setCanvasColor}
                   roomName={roomName}
+                  onCloseRoom={() => {
+                    console.log("Closing room!");
+                    sendMessage(
+                      JSON.stringify({
+                        type: WS_DATA_TYPE.CLOSE_ROOM,
+                        roomName: paramsRef.current.roomId,
+                        userId: paramsRef.current.userId,
+                        userName: paramsRef.current.userName,
+                      })
+                    );
+                    router.push("/");
+                  }}
                 />
               )}
             </div>
@@ -342,7 +356,22 @@ export default function CanvasSheet({
         />
 
         {matches && (
-          <CollaborationStart participants={participants} slug={roomName} />
+          <CollaborationStart
+            participants={participants}
+            slug={roomName}
+            onCloseRoom={() => {
+              console.log("Closing room!");
+              sendMessage(
+                JSON.stringify({
+                  type: WS_DATA_TYPE.CLOSE_ROOM,
+                  roomName: paramsRef.current.roomId,
+                  userId: paramsRef.current.userId,
+                  userName: paramsRef.current.userName,
+                })
+              );
+              router.push("/");
+            }}
+          />
         )}
       </div>
 
@@ -434,6 +463,18 @@ export default function CanvasSheet({
             }))
           }
           roomName={roomName}
+          onCloseRoom={() => {
+            console.log("Closing room!");
+            sendMessage(
+              JSON.stringify({
+                type: WS_DATA_TYPE.CLOSE_ROOM,
+                roomName: paramsRef.current.roomId,
+                userId: paramsRef.current.userId,
+                userName: paramsRef.current.userName,
+              })
+            );
+            router.push("/");
+          }}
         />
       )}
       <canvas

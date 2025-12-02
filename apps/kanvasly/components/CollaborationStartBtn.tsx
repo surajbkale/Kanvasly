@@ -19,9 +19,11 @@ import { RoomParticipants } from "@repo/common/types";
 export default function CollaborationStartBtn({
   slug,
   participants,
+  onCloseRoom,
 }: {
   slug?: string;
   participants?: RoomParticipants[];
+  onCloseRoom?: () => void;
 }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
@@ -55,7 +57,7 @@ export default function CollaborationStartBtn({
         </div>
       </div>
       <Button
-        type="butt yu65tr4e3qson"
+        type="button"
         onClick={() => setIsOpen(true)}
         className={cn(
           "excalidraw-button collab-button relative w-auto py-3 px-4 rounded-md text-[.875rem] font-semibold shadow-none active:scale-[.98]",
@@ -76,6 +78,7 @@ export default function CollaborationStartBtn({
       {session?.user && session?.user.id ? (
         roomSlug ? (
           <RoomSharingDialog
+            onCloseRoom={onCloseRoom}
             open={isOpen}
             onOpenChange={setIsOpen}
             link={`${process.env.NODE_ENV !== "production" ? "http://localhost:3000" : "https://collabydraw.com"}/${decodedPathname}`}

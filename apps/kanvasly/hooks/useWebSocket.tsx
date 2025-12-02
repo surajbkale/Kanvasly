@@ -160,6 +160,7 @@ export function useWebSocket(
     }
 
     const parsedContent = JSON.parse(content);
+    console.log("parsedContent = ", parsedContent);
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       const basePayload = {
         roomName,
@@ -195,6 +196,18 @@ export function useWebSocket(
               ...basePayload,
               type: WS_DATA_TYPE.ERASER,
               id: parsedContent.id,
+            })
+          );
+          break;
+
+        case WS_DATA_TYPE.CLOSE_ROOM:
+          socketRef.current.send(
+            JSON.stringify({
+              ...basePayload,
+              type: WS_DATA_TYPE.CLOSE_ROOM,
+              roomId: paramsRef.current.roomId,
+              userId: paramsRef.current.userId,
+              userName: paramsRef.current.userName,
             })
           );
           break;
