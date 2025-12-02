@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useState } from "react";
-import { Menu, Plus, Minus } from "lucide-react";
+import { Menu, Plus, Minus, Share2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -19,7 +19,7 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { Button } from "./ui/button";
-import { ListBullet, PaletteFilled } from "./SvgIcons";
+import { PaletteFilled } from "./SvgIcons";
 import { ToolMenuStack } from "./ToolMenuStack";
 import {
   BgFill,
@@ -78,7 +78,7 @@ export function MobileNavbar({
   strokeStyle,
   setStrokeStyle,
   roomName,
-  isStandalone = false,
+  isStandalone,
   onClearCanvas,
   onExportCanvas,
   onImportCanvas,
@@ -113,7 +113,7 @@ export function MobileNavbar({
               />
             )}
             <NavbarButton
-              icon={ListBullet}
+              icon={Share2}
               label="Rooms"
               onClick={() => setRoomsListOpen(true)}
               active={roomsListOpen}

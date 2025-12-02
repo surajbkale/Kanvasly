@@ -18,7 +18,7 @@ import {
   DownloadIcon,
   Upload,
   Linkedin,
-  Share,
+  Share2,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -145,7 +145,7 @@ export function MainMenuStack({
                     onClick={onImportCanvas}
                   />
                   <SidebarItem
-                    icon={Share}
+                    icon={Share2}
                     label="Live collaboration"
                     onClick={() => setIsShareOpen(true)}
                   />
@@ -175,15 +175,20 @@ export function MainMenuStack({
                     <CopyIcon className="h-4 w-4" />
                     Room Name: <span>{roomName}</span>
                   </Button>
-                  <SidebarItem
-                    icon={Trash}
-                    label="Reset the canvas"
-                    onClick={() => setClearDialogOpen(true)}
-                  />
                   <RoomSharingDialog
                     open={isShareOpen}
                     onOpenChange={setIsShareOpen}
                     link={`${process.env.NODE_ENV !== "production" ? "http://localhost:3000" : "https://collabydraw.com"}/${decodedPathname}`}
+                  />
+                  <SidebarItem
+                    icon={Share2}
+                    label="Share collaboration"
+                    onClick={() => setIsShareOpen(true)}
+                  />
+                  <SidebarItem
+                    icon={Trash}
+                    label="Reset the canvas"
+                    onClick={() => setClearDialogOpen(true)}
                   />
                 </>
               )}

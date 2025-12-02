@@ -2,7 +2,6 @@ import client from "@repo/db/client";
 import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/utils/auth";
-// import RoomCanvas from '@/components/canvas/RoomCanvas';
 import CanvasSheet from "@/components/canvas/CanvasSheet";
 
 export default async function CanvasPage({
@@ -27,6 +26,7 @@ export default async function CanvasPage({
     console.error("User from session not found.");
     redirect(`/`);
   }
+  console.log("CanvasPage loaded");
 
   return (
     <CanvasSheet
@@ -36,12 +36,5 @@ export default async function CanvasPage({
       userName={user.name || "User-" + user.id}
       token={session.accessToken}
     />
-    // <RoomCanvas
-    //     roomId={room.id.toString()}
-    //     roomName={room.slug}
-    //     userId={user.id}
-    //     userName={user.name || 'User-' + user.id}
-    //     token={session.accessToken}
-    // />
   );
 }
