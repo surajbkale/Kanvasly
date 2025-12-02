@@ -215,7 +215,6 @@ export function StandaloneCanvas() {
         null,
         null,
         (newScale) => setScale(newScale),
-        [],
         true
       );
       setGame(game);
