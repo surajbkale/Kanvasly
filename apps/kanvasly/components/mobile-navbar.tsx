@@ -31,6 +31,7 @@ import {
 } from "@/types/canvas";
 import { UserRoomsListDialog } from "./UserRoomsListDialog";
 import { RoomSharingDialog } from "./RoomSharingDialog";
+import { BASE_URL } from "@/config/constants";
 
 interface MobileNavbarProps {
   canvasColor: string;
@@ -178,7 +179,7 @@ export function MobileNavbar({
           onCloseRoom={onCloseRoom}
           open={roomsListOpen}
           onOpenChange={setRoomsListOpen}
-          link={`${process.env.NODE_ENV !== "production" ? "http://localhost:3000" : "https://collabydraw.com"}/${roomName}`}
+          link={`${BASE_URL}/${roomName}`}
         />
       ) : (
         <Sheet open={roomsListOpen} onOpenChange={setRoomsListOpen}>

@@ -2,7 +2,7 @@
 
 import { Button } from "./ui/button";
 import { useState } from "react";
-import CollaborationStartdDialog from "./CollaborationStartdDialog";
+import CollaborationStartdDialog from "./CollaborationStartedDialog";
 import { useSession } from "next-auth/react";
 import { RoomSharingDialog } from "./RoomSharingDialog";
 import { usePathname } from "next/navigation";
@@ -16,6 +16,7 @@ import {
 } from "./ui/tooltip";
 import { RoomParticipants } from "@repo/common/types";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { BASE_URL } from "@/config/constants";
 
 export default function CollaborationStartBtn({
   slug,
@@ -127,7 +128,7 @@ export default function CollaborationStartBtn({
             onCloseRoom={onCloseRoom}
             open={isOpen}
             onOpenChange={setIsOpen}
-            link={`${process.env.NODE_ENV !== "production" ? "http://localhost:3000" : "https://collabydraw.com"}/${decodedPathname}`}
+            link={`${BASE_URL}/${decodedPathname}`}
           />
         ) : (
           <CollaborationStartdDialog open={isOpen} onOpenChange={setIsOpen} />

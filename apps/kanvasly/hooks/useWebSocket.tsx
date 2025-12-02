@@ -3,13 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   RoomParticipants,
-  WS_DATA_TYPE,
+  WsDataType,
   WebSocketMessage,
 } from "@repo/common/types";
-import { EixstingWsMessages, WsMessage } from "@/types/canvas";
+import { ExistingWsMessages, WsMessage } from "@/types/canvas";
 import { getShapes } from "@/actions/shape";
-
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8080";
+import { WS_URL } from "@/config/constants";
 
 export function useWebSocket(
   roomId: string,
@@ -20,7 +19,7 @@ export function useWebSocket(
 ) {
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState<WsMessage[]>([]);
-  const [existingMsgs, setExistingMsgs] = useState<EixstingWsMessages | null>(
+  const [existingMsgs, setExistingMsgs] = useState<ExistingWsMessages | null>(
     null
   );
   const [participants, setParticipants] = useState<RoomParticipants[]>([]);
@@ -30,7 +29,6 @@ export function useWebSocket(
 
   useEffect(() => {
     paramsRef.current = { roomId, roomName, userId, userName, token };
-    console.log("Inside useWebSocket hook");
   }, [roomId, roomName, userId, userName, token]);
 
   const connectWebSocket = useCallback(() => {
@@ -38,7 +36,6 @@ export function useWebSocket(
       socketRef.current.close();
       socketRef.current = null;
       setExistingMsgs(null);
-      console.log("socketRef.current = null;");
     }
 
     const { roomId, roomName, userId, userName, token } = paramsRef.current;
@@ -47,26 +44,23 @@ export function useWebSocket(
 
     ws.onopen = () => {
       setIsConnected(true);
-      // Send join room message
       ws.send(
         JSON.stringify({
-          type: WS_DATA_TYPE.JOIN,
+          type: WsDataType.JOIN,
           roomId,
           roomName,
           userId,
           userName,
         })
       );
-      console.log("'JOIN' req sent");
     };
 
     ws.onmessage = async (event: MessageEvent) => {
       try {
         const data: WebSocketMessage = JSON.parse(event.data);
-        console.log("Received ws msg = ", data);
 
         switch (data.type) {
-          case WS_DATA_TYPE.USER_JOINED:
+          case WsDataType.USER_JOINED:
             setParticipants((prev) => {
               if (data.participants && Array.isArray(data.participants)) {
                 return data.participants;
@@ -90,7 +84,6 @@ export function useWebSocket(
                 const getShapesResult = await getShapes({
                   roomName: paramsRef.current.roomName,
                 });
-                console.log("getShapesResult:", getShapesResult);
 
                 if (getShapesResult.success && getShapesResult.shapes?.length) {
                   setExistingMsgs({
@@ -107,7 +100,7 @@ export function useWebSocket(
             }
             break;
 
-          case WS_DATA_TYPE.USER_LEFT:
+          case WsDataType.USER_LEFT:
             if (data.userId) {
               setParticipants((prev) =>
                 prev.filter((user) => user.userId !== data.userId)
@@ -115,9 +108,9 @@ export function useWebSocket(
             }
             break;
 
-          case WS_DATA_TYPE.DRAW:
-          case WS_DATA_TYPE.UPDATE:
-          case WS_DATA_TYPE.ERASER:
+          case WsDataType.DRAW:
+          case WsDataType.UPDATE:
+          case WsDataType.ERASER:
             if (data.message || data.id) {
               setMessages((prev) => [
                 ...prev,
@@ -144,7 +137,6 @@ export function useWebSocket(
         setTimeout(connectWebSocket, 1000);
       } else {
         setIsConnected(false);
-        console.log("Called ws.onclose()");
       }
     };
 
@@ -157,7 +149,6 @@ export function useWebSocket(
   }, []);
 
   useEffect(() => {
-    console.log("Calling connectWebSocket();");
     connectWebSocket();
 
     return () => {
@@ -165,11 +156,10 @@ export function useWebSocket(
         if (socketRef.current.readyState === WebSocket.OPEN) {
           socketRef.current.send(
             JSON.stringify({
-              type: WS_DATA_TYPE.LEAVE,
+              type: WsDataType.LEAVE,
               roomId: paramsRef.current.roomId,
             })
           );
-          console.log("LEAVE req sent");
         }
         socketRef.current.close();
         socketRef.current = null;
@@ -187,7 +177,6 @@ export function useWebSocket(
     }
 
     const parsedContent = JSON.parse(content);
-    console.log("parsedContent = ", parsedContent);
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       const basePayload = {
         roomName,
@@ -197,41 +186,41 @@ export function useWebSocket(
       };
 
       switch (parsedContent.type) {
-        case WS_DATA_TYPE.DRAW:
+        case WsDataType.DRAW:
           socketRef.current.send(
             JSON.stringify({
               ...basePayload,
-              type: WS_DATA_TYPE.DRAW,
+              type: WsDataType.DRAW,
               id: parsedContent.id,
               message: JSON.stringify(parsedContent.message),
             })
           );
           break;
-        case WS_DATA_TYPE.UPDATE:
+        case WsDataType.UPDATE:
           socketRef.current.send(
             JSON.stringify({
               ...basePayload,
-              type: WS_DATA_TYPE.UPDATE,
+              type: WsDataType.UPDATE,
               id: parsedContent.id,
               message: JSON.stringify(parsedContent.message),
             })
           );
           break;
-        case WS_DATA_TYPE.ERASER:
+        case WsDataType.ERASER:
           socketRef.current.send(
             JSON.stringify({
               ...basePayload,
-              type: WS_DATA_TYPE.ERASER,
+              type: WsDataType.ERASER,
               id: parsedContent.id,
             })
           );
           break;
 
-        case WS_DATA_TYPE.CLOSE_ROOM:
+        case WsDataType.CLOSE_ROOM:
           socketRef.current.send(
             JSON.stringify({
               ...basePayload,
-              type: WS_DATA_TYPE.CLOSE_ROOM,
+              type: WsDataType.CLOSE_ROOM,
               roomId: paramsRef.current.roomId,
               userId: paramsRef.current.userId,
               userName: paramsRef.current.userName,

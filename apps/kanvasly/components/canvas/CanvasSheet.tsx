@@ -28,10 +28,10 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import Toolbar from "../Toolbar";
 import ScreenLoading from "../ScreenLoading";
 import CollaborationStart from "../CollaborationStartBtn";
-import { cn } from "@/lib/utils";
 import { useWebSocket } from "@/hooks/useWebSocket";
-import { WS_DATA_TYPE } from "@repo/common/types";
+import { WsDataType } from "@repo/common/types";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export default function CanvasSheet({
   roomName,
@@ -70,7 +70,6 @@ export default function CanvasSheet({
 
   useEffect(() => {
     paramsRef.current = { roomId, roomName, userId, userName, token };
-    console.log("E1: ", paramsRef.current);
   }, [roomId, roomName, userId, userName, token]);
 
   const { isConnected, messages, existingMsgs, sendMessage, participants } =
@@ -84,7 +83,6 @@ export default function CanvasSheet({
 
   useEffect(() => {
     setCanvasColor(canvasBgLight[0]);
-    console.log("E2");
   }, [theme]);
 
   useEffect(() => {
@@ -92,8 +90,6 @@ export default function CanvasSheet({
     if (game) {
       game.setScale(scale);
     }
-
-    console.log("scale sync useEffect run with scale =", scale);
   }, [canvasState.game, canvasState.scale]);
 
   useEffect(() => {
@@ -117,7 +113,6 @@ export default function CanvasSheet({
       game.setStrokeEdge(strokeEdge);
       game.setStrokeStyle(strokeStyle);
     }
-    console.log("E3 = ", canvasState);
   }, [canvasState]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -135,7 +130,6 @@ export default function CanvasSheet({
     if (newTool) {
       setCanvasState((prev) => ({ ...prev, activeTool: newTool }));
     }
-    console.log("E4");
   }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -144,12 +138,12 @@ export default function CanvasSheet({
 
     messages.forEach((message) => {
       switch (message.type) {
-        case WS_DATA_TYPE.DRAW:
+        case WsDataType.DRAW:
           if (!newExistingShapes.some((s) => s.id === message.id)) {
             newExistingShapes.push(message.message);
           }
           break;
-        case WS_DATA_TYPE.UPDATE:
+        case WsDataType.UPDATE:
           const index = newExistingShapes.findIndex((s) => s.id === message.id);
           if (index !== -1) {
             newExistingShapes[index] = {
@@ -158,7 +152,7 @@ export default function CanvasSheet({
             };
           }
           break;
-        case WS_DATA_TYPE.ERASER:
+        case WsDataType.ERASER:
           const filteredShapes = newExistingShapes.filter(
             (s) => s.id !== message.id
           );
@@ -168,13 +162,10 @@ export default function CanvasSheet({
       }
     });
 
-    console.log("E5");
     return newExistingShapes;
   }, []);
 
   const initializeGame = useCallback(() => {
-    console.log("canvasRef.current = ", canvasRef.current);
-    console.log("isConnected = ", isConnected);
     if (!canvasRef.current || !isConnected) return null;
 
     const handleSendDrawing = (msgData: string) => {
@@ -188,11 +179,9 @@ export default function CanvasSheet({
       paramsRef.current.roomId,
       canvasState.canvasColor,
       handleSendDrawing,
-      paramsRef.current.roomName,
       (newScale) => setCanvasState((prev) => ({ ...prev, scale: newScale })),
       false
     );
-    console.log("E6");
     return game;
   }, [isConnected, canvasState.canvasColor, sendMessage]);
 
@@ -200,7 +189,6 @@ export default function CanvasSheet({
     const game = initializeGame();
 
     if (game) {
-      console.log("Called initializeGame() = ", game);
       setCanvasState((prev) => ({ ...prev, game }));
 
       const handleResize = () => {
@@ -223,32 +211,23 @@ export default function CanvasSheet({
         game.destroy();
       };
     }
-    console.log("E7");
   }, [initializeGame, handleKeyDown]);
 
   useEffect(() => {
     if (messages.length > 0 && canvasState.game) {
       const processedShapes = processMessages(messages);
-      console.log("processedShapes = ", processedShapes);
       canvasState.game.updateShapes(processedShapes);
     }
-    console.log("E8");
   }, [messages, canvasState.game, processMessages]);
 
   useEffect(() => {
     if (existingMsgs?.message && canvasState.game) {
-      console.log(
-        "Updating shapes with existing messages:",
-        existingMsgs.message
-      );
       canvasState.game.updateShapes(existingMsgs.message);
     }
-    console.log("E9");
   }, [existingMsgs, canvasState.game]);
 
   const toggleSidebar = useCallback(() => {
     setCanvasState((prev) => ({ ...prev, sidebarOpen: !prev.sidebarOpen }));
-    console.log("E10");
   }, []);
 
   if (isLoading) {
@@ -284,10 +263,9 @@ export default function CanvasSheet({
                   setCanvasColor={setCanvasColor}
                   roomName={roomName}
                   onCloseRoom={() => {
-                    console.log("Closing room!");
                     sendMessage(
                       JSON.stringify({
-                        type: WS_DATA_TYPE.CLOSE_ROOM,
+                        type: WsDataType.CLOSE_ROOM,
                         roomName: paramsRef.current.roomId,
                         userId: paramsRef.current.userId,
                         userName: paramsRef.current.userName,
@@ -372,10 +350,9 @@ export default function CanvasSheet({
             participants={participants}
             slug={roomName}
             onCloseRoom={() => {
-              console.log("Closing room!");
               sendMessage(
                 JSON.stringify({
-                  type: WS_DATA_TYPE.CLOSE_ROOM,
+                  type: WsDataType.CLOSE_ROOM,
                   roomName: paramsRef.current.roomId,
                   userId: paramsRef.current.userId,
                   userName: paramsRef.current.userName,
@@ -476,10 +453,9 @@ export default function CanvasSheet({
           }
           roomName={roomName}
           onCloseRoom={() => {
-            console.log("Closing room!");
             sendMessage(
               JSON.stringify({
-                type: WS_DATA_TYPE.CLOSE_ROOM,
+                type: WsDataType.CLOSE_ROOM,
                 roomName: paramsRef.current.roomId,
                 userId: paramsRef.current.userId,
                 userName: paramsRef.current.userName,

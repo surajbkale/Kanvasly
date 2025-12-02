@@ -8,7 +8,7 @@ import { getUserRooms, joinRoom, deleteRoom } from "@/actions/room";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { Skeleton } from "./ui/skeleton";
-import CollaborationStartdDialog from "./CollaborationStartdDialog";
+import CollaborationStartdDialog from "./CollaborationStartedDialog";
 
 type RoomType = {
   id: number;
@@ -66,7 +66,7 @@ export function UserRoomsListDialog({
         if (response && response.success) {
           toast.success(`Joining room: ${roomName}`);
           onOpenChange(false);
-          router.push(`/canvas/${roomName}`);
+          router.push(`/room/${roomName}`);
         } else {
           toast.error(response?.error || "Failed to join room.");
         }

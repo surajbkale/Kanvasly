@@ -31,7 +31,8 @@ import { redirect, usePathname } from "next/navigation";
 import Link from "next/link";
 import { CollaborationAdDialog } from "./CollaborationAdDialog";
 import { RoomSharingDialog } from "./RoomSharingDialog";
-import CollaborationStartdDialog from "./CollaborationStartdDialog";
+import CollaborationStartdDialog from "./CollaborationStartedDialog";
+import { BASE_URL } from "@/config/constants";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -183,7 +184,7 @@ export function MainMenuStack({
                     onCloseRoom={onCloseRoom}
                     open={isShareOpen}
                     onOpenChange={setIsShareOpen}
-                    link={`${process.env.NODE_ENV !== "production" ? "http://localhost:3000" : "https://collabydraw.com"}/${decodedPathname}`}
+                    link={`${BASE_URL}/${decodedPathname}`}
                   />
                   <SidebarItem
                     icon={Share2}
