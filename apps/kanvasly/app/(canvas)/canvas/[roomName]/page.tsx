@@ -24,7 +24,10 @@ export default async function CanvasPage({
   const user = session?.user;
   if (!user || !user.id) {
     console.error("User from session not found.");
-    redirect(`/`);
+    redirect(
+      "/auth/signin?callbackUrl=" +
+        encodeURIComponent(`/canvas/${decodedParam}`)
+    );
   }
   console.log("CanvasPage loaded");
 

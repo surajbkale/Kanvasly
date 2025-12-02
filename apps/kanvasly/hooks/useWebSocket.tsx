@@ -6,7 +6,8 @@ import {
   WS_DATA_TYPE,
   WebSocketMessage,
 } from "@repo/common/types";
-import { WsMessage } from "@/types/canvas";
+import { EixstingWsMessages, WsMessage } from "@/types/canvas";
+import { getShapes } from "@/actions/shape";
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8080";
 
@@ -19,23 +20,24 @@ export function useWebSocket(
 ) {
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState<WsMessage[]>([]);
+  const [existingMsgs, setExistingMsgs] = useState<EixstingWsMessages | null>(
+    null
+  );
   const [participants, setParticipants] = useState<RoomParticipants[]>([]);
   const socketRef = useRef<WebSocket | null>(null);
 
-  // Stable references to prevent unnecessary re-renders
   const paramsRef = useRef({ roomId, roomName, userId, userName, token });
 
-  // Update ref when parameters change
   useEffect(() => {
     paramsRef.current = { roomId, roomName, userId, userName, token };
     console.log("Inside useWebSocket hook");
   }, [roomId, roomName, userId, userName, token]);
 
   const connectWebSocket = useCallback(() => {
-    // Prevent multiple connections
     if (socketRef.current) {
       socketRef.current.close();
       socketRef.current = null;
+      setExistingMsgs(null);
       console.log("socketRef.current = null;");
     }
 
@@ -58,7 +60,7 @@ export function useWebSocket(
       console.log("'JOIN' req sent");
     };
 
-    ws.onmessage = (event: MessageEvent) => {
+    ws.onmessage = async (event: MessageEvent) => {
       try {
         const data: WebSocketMessage = JSON.parse(event.data);
         console.log("Received ws msg = ", data);
@@ -83,6 +85,26 @@ export function useWebSocket(
               }
               return prev;
             });
+            if (data.userId === paramsRef.current.userId) {
+              try {
+                const getShapesResult = await getShapes({
+                  roomName: paramsRef.current.roomName,
+                });
+                console.log("getShapesResult:", getShapesResult);
+
+                if (getShapesResult.success && getShapesResult.shapes?.length) {
+                  setExistingMsgs({
+                    type: data.type,
+                    userId: data.userId || userId,
+                    userName: data.userName || userName,
+                    message: getShapesResult.shapes,
+                    timestamp: data.timestamp || new Date().toISOString(),
+                  });
+                }
+              } catch (error) {
+                console.error("Error fetching shapes:", error);
+              }
+            }
             break;
 
           case WS_DATA_TYPE.USER_LEFT:
@@ -116,9 +138,14 @@ export function useWebSocket(
       }
     };
 
-    ws.onclose = () => {
-      setIsConnected(false);
-      console.log("Called ws.onclose()");
+    ws.onclose = (event) => {
+      if (event.code === 1001 || event.code === 1005) {
+        console.log(`Reconnecting ${userId}...`);
+        setTimeout(connectWebSocket, 1000);
+      } else {
+        setIsConnected(false);
+        console.log("Called ws.onclose()");
+      }
     };
 
     ws.onerror = (error) => {
@@ -127,9 +154,8 @@ export function useWebSocket(
     };
 
     socketRef.current = ws;
-  }, []); // Empty dependency array
+  }, []);
 
-  // Connect only once when component mounts
   useEffect(() => {
     console.log("Calling connectWebSocket();");
     connectWebSocket();
@@ -147,6 +173,7 @@ export function useWebSocket(
         }
         socketRef.current.close();
         socketRef.current = null;
+        setExistingMsgs(null);
       }
     };
   }, [connectWebSocket]);
@@ -220,6 +247,7 @@ export function useWebSocket(
   return {
     isConnected,
     messages,
+    existingMsgs,
     participants,
     sendMessage,
   };
