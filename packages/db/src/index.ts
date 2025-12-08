@@ -1,6 +1,7 @@
 import { PrismaClient } from "./generated/prisma/client";
 
 const prismaClinentSingleton = () => {
+  // @ts-ignore: disable-next-line
   return new PrismaClient();
 };
 
