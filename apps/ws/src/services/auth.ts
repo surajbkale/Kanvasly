@@ -8,7 +8,6 @@ export function authUser(token: string) {
       console.error("Decoded token is a string, expected object");
       return null;
     }
-
     if (!decoded.id) {
       console.error("No valid user ID in token");
       return null;

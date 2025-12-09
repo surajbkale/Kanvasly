@@ -1,7 +1,9 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { JWT_SECRET as JWT_SECRET_TYPE } from "@repo/common/types";
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is ABSOLUTELY REQUIRED and not set");
+}
 
+export const JWT_SECRET = process.env.JWT_SECRET;
 export const PORT = Number(process.env.PORT) || 8080;
-export const JWT_SECRET = process.env.JWT_SECRET || (JWT_SECRET_TYPE as string);

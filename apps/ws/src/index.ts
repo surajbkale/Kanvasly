@@ -1,15 +1,18 @@
 import { WebSocketServer } from "ws";
-import { WsDataType, WebSocketMessage } from "@repo/common/types";
+import { WebSocketMessage, WsDataType } from "@repo/common/types";
 import { PORT } from "./config.js";
 import { authUser } from "./services/auth.js";
-import { userManager } from "./managers/UserManager.js";
-import { User } from "./types.js";
+import { connectionManager } from "./managers/ConnectionManager.js";
+import { Connection } from "./types.js";
 import {
   handleJoin,
   handleLeave,
   handleCloseRoom,
+  handleDisconnect,
 } from "./handlers/roomHandler.js";
 import {
+  handleCursorMove,
+  handleStream,
   handleDraw,
   handleUpdate,
   handleEraser,
@@ -32,11 +35,11 @@ wss.on("connection", function connection(ws, req) {
     console.error("No valid URL found in request");
     return;
   }
-  const queryParams = new URLSearchParams(url.split("?")[1]);
-  const token = queryParams.get("token");
+
+  const queryParam = new URLSearchParams(url.split("?")[1]);
+  const token = queryParam.get("token");
   if (!token || token === null) {
     console.error("No valid token found in query params");
-    ws.close(1008, "User not authenticated");
     return;
   }
 
@@ -47,21 +50,28 @@ wss.on("connection", function connection(ws, req) {
     return;
   }
 
-  const newUser: User = {
+  const connectionId = connectionManager.generateConnectionId();
+  const newConnection: Connection = {
+    connectionId,
     userId,
     userName: userId,
     ws,
     rooms: [],
   };
-  userManager.addUser(newUser);
+  connectionManager.addConnection(newConnection);
 
-  ws.on("error", (err) => {
-    console.error(`WebSocket error for user ${userId}: ${err}`);
-  });
+  ws.send(
+    JSON.stringify({
+      type: WsDataType.CONNECTION_READY,
+      connectionId,
+    })
+  );
 
-  ws.on("open", () => {
-    ws.send(JSON.stringify({ type: WsDataType.CONNECTION_READY }));
-  });
+  console.log(`Sent CONNECTION_READY to: ${connectionId}`);
+
+  ws.on("error", (err) =>
+    console.error(`WebSocket error for user ${userId}: ${err}`)
+  );
 
   ws.on("message", async function message(data) {
     try {
@@ -71,49 +81,65 @@ wss.on("connection", function connection(ws, req) {
         return;
       }
 
-      const user = userManager.getUser(parsedData.userId);
-      if (!user) {
-        console.error("No user found");
-        ws.close();
-        return;
-      }
-
       if (!parsedData.roomId || !parsedData.userId) {
         console.error("No userId or roomId provided for WS message");
         return;
       }
 
-      if (parsedData.userName && user.userName === userId) {
-        user.userName = parsedData.userName;
+      const connection = connectionManager.getConnection(connectionId);
+      if (!connection) {
+        console.error("No connection found");
+        ws.close();
+        return;
+      }
+
+      if (parsedData.userName && connection.userName === userId) {
+        connection.userName = parsedData.userName;
+        connectionManager.updateAllUsernamesForUser(
+          userId,
+          parsedData.userName ?? parsedData.userId
+        );
       }
 
       switch (parsedData.type) {
         case WsDataType.JOIN:
-          await handleJoin(user, parsedData, ws);
+          await handleJoin(connection, parsedData, ws);
           break;
 
         case WsDataType.LEAVE:
-          handleLeave(user, parsedData);
+          await handleLeave(connection, parsedData.roomId);
           break;
 
         case WsDataType.CLOSE_ROOM:
-          await handleCloseRoom(user, parsedData, ws);
+          await handleCloseRoom(connection, parsedData);
+          break;
+
+        case WsDataType.CURSOR_MOVE:
+          handleCursorMove(connection, parsedData);
+          break;
+
+        case WsDataType.STREAM_SHAPE:
+        case WsDataType.STREAM_UPDATE:
+          handleStream(connection, parsedData);
           break;
 
         case WsDataType.DRAW:
-          await handleDraw(user, parsedData);
+          handleDraw(connection, parsedData);
           break;
 
         case WsDataType.UPDATE:
-          await handleUpdate(user, parsedData);
+          handleUpdate(connection, parsedData);
           break;
 
         case WsDataType.ERASER:
-          await handleEraser(user, parsedData);
+          handleEraser(connection, parsedData);
           break;
 
         default:
-          console.warn(`Unknown message type: ${parsedData.type}`);
+          console.warn(
+            `Unknown message type received from connection ${connectionId}: ${parsedData.type}`
+          );
+          break;
       }
     } catch (error) {
       console.error("Error processing message: ", error);
@@ -121,23 +147,7 @@ wss.on("connection", function connection(ws, req) {
   });
 
   ws.on("close", (code, reason) => {
-    const user = userManager.getUser(userId);
-    if (user) {
-      user.rooms.forEach((roomId) => {
-        userManager.broadcastToRoom(
-          roomId,
-          {
-            type: WsDataType.USER_LEFT,
-            userId: user.userId,
-            userName: user.userName,
-            roomId,
-          },
-          [user.userId]
-        );
-      });
-    }
-
-    userManager.removeUser(userId);
+    handleDisconnect(connectionId);
   });
 });
 
