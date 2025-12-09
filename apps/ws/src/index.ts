@@ -1,14 +1,19 @@
-import dotenv from "dotenv";
-dotenv.config();
-import client from "@repo/db/client";
+import { WebSocketServer } from "ws";
+import { WsDataType, WebSocketMessage } from "@repo/common/types";
+import { PORT } from "./config.js";
+import { authUser } from "./services/auth.js";
+import { userManager } from "./managers/UserManager.js";
+import { User } from "./types.js";
 import {
-  JWT_SECRET as JWT_SECRET_TYPE,
-  WebSocketMessage,
-  WsDataType,
-} from "@repo/common/types";
-import { WebSocketServer, WebSocket } from "ws";
-import jwt, { JwtPayload } from "jsonwebtoken";
-const JWT_SECRET = process.env.JWT_SECRET || (JWT_SECRET_TYPE as string);
+  handleJoin,
+  handleLeave,
+  handleCloseRoom,
+} from "./handlers/roomHandler.js";
+import {
+  handleDraw,
+  handleUpdate,
+  handleEraser,
+} from "./handlers/canvasHandler.js";
 
 declare module "http" {
   interface IncomingMessage {
@@ -19,34 +24,7 @@ declare module "http" {
   }
 }
 
-const wss = new WebSocketServer({ port: Number(process.env.PORT) || 8080 });
-
-function authUser(token: string) {
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    if (typeof decoded == "string") {
-      console.error("Decoded token is a string, expected object");
-      return null;
-    }
-    if (!decoded.id) {
-      console.error("No valid user ID in token");
-      return null;
-    }
-    return decoded.id;
-  } catch (err) {
-    console.error("JWT verification failed:", err);
-    return null;
-  }
-}
-
-type User = {
-  userId: string;
-  userName: string;
-  ws: WebSocket;
-  rooms: string[];
-};
-
-const users: User[] = [];
+const wss = new WebSocketServer({ port: PORT });
 
 wss.on("connection", function connection(ws, req) {
   const url = req.url;
@@ -61,16 +39,12 @@ wss.on("connection", function connection(ws, req) {
     ws.close(1008, "User not authenticated");
     return;
   }
+
   const userId = authUser(token);
   if (!userId) {
     console.error("Connection rejected: invalid user");
     ws.close(1008, "User not authenticated");
     return;
-  }
-
-  const existingIndex = users.findIndex((u) => u.userId === userId);
-  if (existingIndex !== -1) {
-    users.splice(existingIndex, 1);
   }
 
   const newUser: User = {
@@ -79,11 +53,11 @@ wss.on("connection", function connection(ws, req) {
     ws,
     rooms: [],
   };
-  users.push(newUser);
+  userManager.addUser(newUser);
 
-  ws.on("error", (err) =>
-    console.error(`WebSocket error for user ${userId}:`, err)
-  );
+  ws.on("error", (err) => {
+    console.error(`WebSocket error for user ${userId}: ${err}`);
+  });
 
   ws.on("open", () => {
     ws.send(JSON.stringify({ type: WsDataType.CONNECTION_READY }));
@@ -97,7 +71,7 @@ wss.on("connection", function connection(ws, req) {
         return;
       }
 
-      const user = users.find((x) => x.userId === parsedData.userId);
+      const user = userManager.getUser(parsedData.userId);
       if (!user) {
         console.error("No user found");
         ws.close();
@@ -115,260 +89,42 @@ wss.on("connection", function connection(ws, req) {
 
       switch (parsedData.type) {
         case WsDataType.JOIN:
-          const roomCheckResponse = await client.room.findUnique({
-            where: { id: Number(parsedData.roomId) },
-          });
-
-          if (!roomCheckResponse) {
-            ws.close();
-            return;
-          }
-
-          user.rooms.push(parsedData.roomId);
-
-          const uniqueParticipantsMap = new Map();
-          users
-            .filter((u) => u.rooms.includes(parsedData.roomId))
-            .forEach((u) =>
-              uniqueParticipantsMap.set(u.userId, {
-                userId: u.userId,
-                userName: u.userName,
-              })
-            );
-
-          const currentParticipants = Array.from(
-            uniqueParticipantsMap.values()
-          );
-
-          ws.send(
-            JSON.stringify({
-              type: WsDataType.USER_JOINED,
-              roomId: parsedData.roomId,
-              roomName: parsedData.roomName,
-              userId: user.userId,
-              userName: parsedData.userName,
-              participants: currentParticipants,
-              timestamp: new Date().toISOString(),
-            })
-          );
-
-          broadcastToRoom(
-            parsedData.roomId,
-            {
-              type: WsDataType.USER_JOINED,
-              roomId: parsedData.roomId,
-              roomName: parsedData.roomName,
-              userId: user.userId,
-              userName: parsedData.userName,
-              participants: currentParticipants,
-              timestamp: new Date().toISOString(),
-            },
-            [user.userId],
-            true
-          );
+          await handleJoin(user, parsedData, ws);
           break;
 
         case WsDataType.LEAVE:
-          user.rooms = user.rooms.filter((r) => r !== parsedData.roomId);
-          broadcastToRoom(
-            parsedData.roomId,
-            {
-              type: WsDataType.USER_LEFT,
-              userId: user.userId,
-              userName: user.userName,
-              roomId: parsedData.roomId,
-            },
-            [user.userId],
-            true
-          );
+          handleLeave(user, parsedData);
           break;
 
-        case WsDataType.CLOSE_ROOM: {
-          const usersInRoom = users.filter((u) =>
-            u.rooms.includes(parsedData.roomId)
-          );
-
-          if (
-            usersInRoom.length === 1 &&
-            usersInRoom[0] &&
-            usersInRoom[0].userId === userId
-          ) {
-            try {
-              await client.shape.deleteMany({
-                where: { roomId: Number(parsedData.roomId) },
-              });
-              await client.room.delete({
-                where: { id: Number(parsedData.roomId) },
-              });
-
-              ws.send(
-                JSON.stringify({
-                  type: "ROOM_CLOSED",
-                  roomId: parsedData.roomId,
-                  timestamp: new Date().toISOString(),
-                })
-              );
-
-              ws.close(1000, "Room deleted");
-            } catch (err) {
-              console.error("Error deleting room and shapes:", err);
-            }
-          }
+        case WsDataType.CLOSE_ROOM:
+          await handleCloseRoom(user, parsedData, ws);
           break;
-        }
 
         case WsDataType.DRAW:
-          if (!parsedData.message || !parsedData.id) {
-            console.error(
-              `Missing shape Id or shape message data for ${parsedData.type}`
-            );
-            return;
-          }
-
-          try {
-            await client.shape.create({
-              data: {
-                id: parsedData.id,
-                message: parsedData.message,
-                roomId: Number(parsedData.roomId),
-                userId: userId,
-              },
-            });
-          } catch (err) {
-            console.error(
-              `Error saving ${parsedData.type} data to database:`,
-              err
-            );
-          }
-
-          broadcastToRoom(
-            parsedData.roomId,
-            {
-              type: parsedData.type,
-              message: parsedData.message,
-              roomId: parsedData.roomId,
-              userId: userId,
-              userName: user.userName,
-              timestamp: new Date().toISOString(),
-            },
-            [userId],
-            false
-          );
+          await handleDraw(user, parsedData);
           break;
 
         case WsDataType.UPDATE:
-          if (!parsedData.message || !parsedData.id) {
-            console.error(
-              `Missing shape Id or shape message data for ${parsedData.type}`
-            );
-            return;
-          }
-
-          try {
-            await client.shape.update({
-              where: {
-                id: parsedData.id,
-                roomId: Number(parsedData.roomId),
-              },
-              data: {
-                message: parsedData.message,
-              },
-            });
-          } catch (err) {
-            console.error(
-              `Error saving ${parsedData.type} data to database:`,
-              err
-            );
-          }
-
-          broadcastToRoom(
-            parsedData.roomId,
-            {
-              type: parsedData.type,
-              id: parsedData.id,
-              message: parsedData.message,
-              roomId: parsedData.roomId,
-              userId: userId,
-              userName: user.userName,
-              timestamp: new Date().toISOString(),
-            },
-            [],
-            false
-          );
+          await handleUpdate(user, parsedData);
           break;
 
         case WsDataType.ERASER:
-          if (!parsedData.id) {
-            console.error(`Missing shape Id for ${parsedData.type}`);
-            return;
-          }
-
-          try {
-            const shapeExists = await client.shape.findUnique({
-              where: {
-                id: parsedData.id,
-                roomId: Number(parsedData.roomId),
-              },
-            });
-
-            if (!shapeExists) {
-              broadcastToRoom(
-                parsedData.roomId,
-                {
-                  id: parsedData.id,
-                  type: parsedData.type,
-                  roomId: parsedData.roomId,
-                  userId: userId,
-                  userName: user.userName,
-                  timestamp: new Date().toISOString(),
-                },
-                [userId],
-                false
-              );
-              return;
-            }
-
-            await client.shape.delete({
-              where: {
-                id: parsedData.id,
-                roomId: Number(parsedData.roomId),
-              },
-            });
-
-            broadcastToRoom(
-              parsedData.roomId,
-              {
-                id: parsedData.id,
-                type: parsedData.type,
-                roomId: parsedData.roomId,
-                userId: userId,
-                userName: user.userName,
-                timestamp: new Date().toISOString(),
-              },
-              [userId],
-              false
-            );
-          } catch (err) {
-            console.error(
-              `Error erasing ${parsedData.type} data to database:`,
-              err
-            );
-          }
+          await handleEraser(user, parsedData);
           break;
 
         default:
           console.warn(`Unknown message type: ${parsedData.type}`);
       }
     } catch (error) {
-      console.error("Error processing message:", error);
+      console.error("Error processing message: ", error);
     }
   });
 
   ws.on("close", (code, reason) => {
-    const user = users.find((u) => u.userId === userId);
+    const user = userManager.getUser(userId);
     if (user) {
       user.rooms.forEach((roomId) => {
-        broadcastToRoom(
+        userManager.broadcastToRoom(
           roomId,
           {
             type: WsDataType.USER_LEFT,
@@ -381,47 +137,10 @@ wss.on("connection", function connection(ws, req) {
       });
     }
 
-    const index = users.findIndex((u) => u.userId === userId);
-    if (index !== -1) users.splice(index, 1);
+    userManager.removeUser(userId);
   });
 });
 
-function broadcastToRoom(
-  roomId: string,
-  message: WebSocketMessage,
-  excludeUsers: string[] = [],
-  includeParticipants: boolean = false
-) {
-  if (
-    (includeParticipants && !message.participants) ||
-    message.type === WsDataType.USER_JOINED
-  ) {
-    const uniqueParticipantsMap = new Map();
-    users
-      .filter((u) => u.rooms.includes(roomId))
-      .forEach((u) =>
-        uniqueParticipantsMap.set(u.userId, {
-          userId: u.userId,
-          userName: u.userName,
-        })
-      );
-
-    const currentParticipants = Array.from(uniqueParticipantsMap.values());
-    message.participants = currentParticipants;
-  }
-  users.forEach((u) => {
-    if (u.rooms.includes(roomId) && !excludeUsers.includes(u.userId)) {
-      try {
-        if (u.ws.readyState === WebSocket.OPEN) {
-          u.ws.send(JSON.stringify(message));
-        }
-      } catch (err) {
-        console.error(`Error sending message to user ${u.userId}:`, err);
-      }
-    }
-  });
-}
-
 wss.on("listening", () => {
-  console.log(`WebSocket server started on port ${process.env.PORT || 8080}`);
+  console.log(`Websocket server started on port ${PORT}`);
 });
