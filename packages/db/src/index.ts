@@ -1,17 +1,17 @@
-import { PrismaClient } from "./generated/prisma/client";
+import { PrismaClient } from "./generated/prisma/client.js";
 
-const prismaClinentSingleton = () => {
-  // @ts-ignore: disable-next-line
+const prismaClientSingleton = () => {
+  // @ts-ignore: Ignore globalThis typing issue
   return new PrismaClient();
 };
 
-type PrismaClinentSingleton = ReturnType<typeof prismaClinentSingleton>;
+type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClinentSingleton | undefined;
+  prisma: PrismaClientSingleton | undefined;
 };
 
-const prisma = globalForPrisma.prisma ?? prismaClinentSingleton();
+const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
 
 export default prisma;
 

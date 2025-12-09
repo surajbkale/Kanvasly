@@ -8,7 +8,7 @@ export const SignupSchema = z.object({
     .trim(),
   password: z
     .string()
-    .min(6, { message: "Password must be at least 6 characters long." })
+    .min(8, { message: "Password must be at least 8 characters long." })
     .regex(/[a-zA-Z]/, { message: "Must contain at least one letter." })
     .regex(/[0-9]/, { message: "Must contain at least one number." })
     .regex(/[^a-zA-Z0-9]/, {
@@ -21,7 +21,7 @@ export const SigninSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email." }).trim(),
   password: z
     .string()
-    .min(6, { message: "Password must be at least 6 characters long." })
+    .min(8, { message: "Password must be at least 8 characters long." })
     .regex(/[a-zA-Z]/, { message: "Must contain at least one letter." })
     .regex(/[0-9]/, { message: "Must contain at least one number." })
     .regex(/[^a-zA-Z0-9]/, {
@@ -62,18 +62,22 @@ export enum WsDataType {
   EXISTING_PARTICIPANTS = "EXISTING_PARTICIPANTS",
   CLOSE_ROOM = "CLOSE_ROOM",
   CONNECTION_READY = "CONNECTION_READY",
+  EXISTING_SHAPES = "EXISTING_SHAPES",
+  STREAM_SHAPE = "STREAM_SHAPE",
+  STREAM_UPDATE = "STREAM_UPDATE",
+  CURSOR_MOVE = "CURSOR_MOVE",
 }
 
 export interface WebSocketMessage {
-  id?: string;
+  id: string | null;
   type: WsDataType;
+  connectionId: string;
   roomId: string;
-  roomName?: string;
   userId: string;
-  userName?: string;
-  message?: string;
-  participants?: RoomParticipants[];
-  timestamp?: string;
+  userName: string | null;
+  message: string | null;
+  participants: RoomParticipants[] | null;
+  timestamp: string | null;
 }
 
 export interface WebSocketChatMessage {
@@ -95,12 +99,4 @@ export interface RecentRooms {
   visitedAt: string;
 }
 
-export const JWT_SECRET =
-  process.env.JWT_SECRET ??
-  (() => {
-    throw new Error("JWT_SECRET is not set in environment variables.");
-  })();
-
 export const saltRounds = 10;
-
-// canvas types
