@@ -1,18 +1,16 @@
 "use server";
 
-import { z } from "zod";
+import { success, z } from "zod";
 import client from "@repo/db/client";
-import { CreateRoomSchema, JoinRoomSchema } from "@repo/common/types";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/utils/auth";
 import { cookies } from "next/headers";
+import { error } from "console";
 
-export async function joinRoom(data: { roomName: string }) {
+export async function joinRoom(data: { id: string }) {
   try {
-    const validatedRoomName = JoinRoomSchema.parse(data);
-
     const room = await client.room.findUnique({
-      where: { slug: validatedRoomName.roomName },
+      where: { id: data.id },
     });
 
     if (!room) {
@@ -23,7 +21,7 @@ export async function joinRoom(data: { roomName: string }) {
     const cookieToken = session?.accessToken;
 
     if (!cookieToken) {
-      console.error("session.accessToken not found in join room server action");
+      console.error("session.accesstoken not found in join room server action");
       return;
     }
 
@@ -37,18 +35,19 @@ export async function joinRoom(data: { roomName: string }) {
 
     return {
       success: true,
-      roomName: room.slug,
+      room: room,
     };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { success: false, error: "Invalid room code format" };
     }
-    console.error("Failed to join room:", error);
-    return { success: false, error: "Failed to join room" };
+
+    console.error("Failed to join room: ", error);
+    return { success: false, error: "Failed to join the room" };
   }
 }
 
-export async function createRoom(data: { roomName: string }) {
+export async function createRoom() {
   try {
     const session = await getServerSession(authOptions);
     const user = session?.user;
@@ -57,11 +56,8 @@ export async function createRoom(data: { roomName: string }) {
       return { success: false, error: "User not found" };
     }
 
-    const validatedRoomName = CreateRoomSchema.parse(data);
-
     const room = await client.room.create({
       data: {
-        slug: validatedRoomName.roomName,
         adminId: user.id,
       },
     });
@@ -78,17 +74,15 @@ export async function createRoom(data: { roomName: string }) {
         errorMessage: error.message,
       };
     }
-    console.error("Failed to create room:", error);
+    console.error("Failed to create room: ", error);
     return { success: false, error: "Failed to create room" };
   }
 }
 
-export async function getRoom(data: { roomName: string }) {
+export async function getRoom(data: { id: string }) {
   try {
-    const validatedRoomName = JoinRoomSchema.parse(data);
-
     const room = await client.room.findUnique({
-      where: { slug: validatedRoomName.roomName },
+      where: { id: data.id },
       include: { Shape: true },
     });
 
@@ -120,12 +114,12 @@ export async function getRoom(data: { roomName: string }) {
     if (error instanceof z.ZodError) {
       return { success: false, error: "Invalid room code format" };
     }
-    console.error("Failed to join room:", error);
+    console.error("Failed to join room: ", error);
     return { success: false, error: "Failed to join room" };
   }
 }
 
-export async function deleteRoom(data: { roomName: string }) {
+export async function deleteRoom(data: { id: string }) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -133,10 +127,8 @@ export async function deleteRoom(data: { roomName: string }) {
       return { success: false, error: "Authentication required" };
     }
 
-    const validatedRoomName = JoinRoomSchema.parse(data);
-
     const room = await client.room.findUnique({
-      where: { slug: validatedRoomName.roomName },
+      where: { id: data.id },
       include: { admin: true },
     });
 
@@ -159,12 +151,12 @@ export async function deleteRoom(data: { roomName: string }) {
       where: { id: room.id },
     });
 
-    return { success: true, message: "Room deleted successfully" };
+    return { success: true, message: "Room deleted successfullly" };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { success: false, error: "Invalid room name format" };
     }
-    console.error("Failed to delete room:", error);
+    console.error("Failed to delete room: ", error);
     return { success: false, error: "Failed to delete room" };
   }
 }
@@ -182,7 +174,6 @@ export async function getUserRooms() {
       where: { adminId: user.id },
       select: {
         id: true,
-        slug: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -190,7 +181,7 @@ export async function getUserRooms() {
 
     return { success: true, rooms };
   } catch (error) {
-    console.error("Failed to fetch user rooms:", error);
+    console.error("Failed to fetch user rooms: ", error);
     return { success: false, error: "Failed to fetch user rooms" };
   }
 }

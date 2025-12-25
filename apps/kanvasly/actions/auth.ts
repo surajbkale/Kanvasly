@@ -1,15 +1,15 @@
-"use server";
+"user server";
 
 import { SignupSchema } from "@repo/common/types";
 import client from "@repo/db/client";
 import bcrypt from "bcrypt";
-import { z } from "zod";
+import { success, z } from "zod";
 
 export async function signUp(values: z.infer<typeof SignupSchema>) {
   const validatedFields = SignupSchema.safeParse(values);
 
   if (!validatedFields.success) {
-    return { error: "Invalid fields." };
+    return { error: "Invalid Fields" };
   }
 
   const { name, email, password } = validatedFields.data;
@@ -38,8 +38,8 @@ export async function signUp(values: z.infer<typeof SignupSchema>) {
     return { success: true };
   } catch (error) {
     const errorMessage =
-      error instanceof Error ? error.message : "Some Brutal Error";
+      error instanceof Error ? error.message : "Something went wrong";
     console.error("Error: ", errorMessage);
-    return { error: "Error creating user." };
+    return { error: "Error creating user" };
   }
 }
