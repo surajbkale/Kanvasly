@@ -1,6 +1,6 @@
 import { WebSocket } from "ws";
 import { WebSocketMessage, WsDataType } from "@repo/common/types";
-import { Connection } from "../types.js";
+import { Connection } from "../types";
 
 class ConnectionManager {
   private static instance: ConnectionManager;

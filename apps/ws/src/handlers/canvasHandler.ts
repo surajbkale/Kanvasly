@@ -1,7 +1,7 @@
 import client from "@repo/db/client";
 import { WebSocketMessage, WsDataType } from "@repo/common/types";
-import { connectionManager } from "../managers/ConnectionManager.js";
-import { Connection } from "../types.js";
+import { connectionManager } from "../managers/ConnectionManager";
+import { Connection } from "../types";
 
 export function handleCursorMove(
   connection: Connection,

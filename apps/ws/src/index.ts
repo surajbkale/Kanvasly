@@ -1,9 +1,9 @@
 import { WebSocketServer } from "ws";
 import { WebSocketMessage, WsDataType } from "@repo/common/types";
-import { PORT } from "./config.js";
-import { authUser } from "./services/auth.js";
-import { connectionManager } from "./managers/ConnectionManager.js";
-import { Connection } from "./types.js";
+import { PORT } from "./config";
+import { authUser } from "./services/auth";
+import { connectionManager } from "./managers/ConnectionManager";
+import { Connection } from "./types";
 import {
   handleJoin,
   handleLeave,
